@@ -293,6 +293,17 @@ document.getElementById('btn-help').addEventListener('click', ()=>openModal('hel
   });
 })();
 
+/* ── Mobile: "← Edit code" returns from full-screen trace to the editor ── */
+(function(){
+  const btn = document.getElementById('edit-code-btn');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    document.body.classList.remove('mobile-trace-view');
+    // Editor was hidden → CodeMirror needs a refresh to render correctly
+    setTimeout(()=>{ if(window._cm) window._cm.refresh(); }, 50);
+  });
+})();
+
 /* ── Mobile drawer ──────────────────────────────────────────────────── */
 const mobileDrawer = document.getElementById('mobile-drawer');
 
@@ -308,6 +319,7 @@ document.getElementById('m-snippets').addEventListener('click', ()=>{ mobileDraw
 document.getElementById('m-save').addEventListener('click',     ()=>{ mobileDrawer.classList.remove('show'); openSaveModal(); });
 document.getElementById('m-share').addEventListener('click',    ()=>{ mobileDrawer.classList.remove('show'); document.getElementById('btn-share').click(); });
 document.getElementById('m-help').addEventListener('click',     ()=>{ mobileDrawer.classList.remove('show'); document.getElementById('btn-help').click(); });
+document.getElementById('m-bug').addEventListener('click',      ()=>{ mobileDrawer.classList.remove('show'); document.getElementById('bug-fab').click(); });
 
 // Mobile theme swatches
 document.querySelectorAll('#theme-picker-mobile .tsw').forEach(sw=>{

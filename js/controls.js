@@ -168,7 +168,7 @@ function updCtrl(){
   btnSB.disabled   = !has || cur === 0;
   btnSF.disabled   = !has || cur >= snaps.length-1;
   btnPlay.disabled = !has;
-  btnPlay.textContent = playing ? '⏸' : '▶';
+  // Play/pause icon is drawn in CSS via the `.on` class — no glyph swapping.
   btnPlay.classList.toggle('on', playing);
 }
 

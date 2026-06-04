@@ -318,6 +318,20 @@ function render(){
     (s.filename==='<driver>'?'DRIVER':'CODE') + ' · LINE ' + String(s.line).padStart(2,'0');
   setProgress(cur, snaps.length);
 
+  // Mobile sticky line header — the editor is hidden in full-screen trace mode,
+  // so we pin the EXACT source line being executed at this step right above the
+  // visualization. Updates as the user steps forward / back.
+  const _mlh = document.getElementById('mobile-line-head');
+  if(_mlh){
+    if(s.filename === '<driver>'){
+      _mlh.innerHTML = '<span class="mlh-num">DRV</span><span class="mlh-src">driver setup</span>';
+    } else {
+      let _src = '';
+      try { _src = window._cm ? (window._cm.getLine(s.line-1) || '').trim() : ''; } catch(e){}
+      _mlh.innerHTML = '<span class="mlh-num">L'+s.line+'</span><span class="mlh-src">'+esc(_src)+'</span>';
+    }
+  }
+
   const out = [];
 
   // ── 1. Statement panel — "compute x = y+1 → 4" ── VERY TOP

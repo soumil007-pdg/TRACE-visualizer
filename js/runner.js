@@ -110,6 +110,11 @@ async function runCode(){
   setStat(snaps.length + ' steps', 'ready');
   updCtrl();
 
+  // Mobile: after a successful run, hand the whole screen to the trace so the
+  // visualization is what the user sees (code editor collapses; "← Edit code"
+  // brings it back). Harmless on desktop — CSS only acts below 880px.
+  if(window.innerWidth <= 880) document.body.classList.add('mobile-trace-view');
+
   // Usage analytics — fire-and-forget, never blocks the app
   if(window.Analytics) Analytics.track('code_run', {
     steps: snaps.length,

@@ -269,6 +269,60 @@
   .ch-head   { padding: 6px 10px !important; }
 }
 
+/* ── Mobile-only chrome: edit-code button + sticky line header ─────────
+   Hidden everywhere by default; only revealed inside the mobile
+   full-screen trace view (body.mobile-trace-view, ≤880px).
+   ─────────────────────────────────────────────────────────────────── */
+#edit-code-btn   { display: none; }
+#mobile-line-head{ display: none; }
+
+@media (max-width: 880px){
+  /* Fix 1: bug FAB collided with playback controls — drop it on mobile.
+     Bug reports live in the ☰ drawer instead (m-bug). */
+  #bug-fab { display: none !important; }
+
+  /* Fix 3: after RUN the trace takes the whole screen ─────────────────── */
+  body.mobile-trace-view #left,
+  body.mobile-trace-view .vres,
+  body.mobile-trace-view .hres { display: none !important; }
+
+  body.mobile-trace-view #right {
+    height: auto !important;
+    flex: 1 1 auto !important;
+    min-height: 0;
+  }
+
+  /* "← Edit code" pill in the trace header */
+  body.mobile-trace-view #edit-code-btn {
+    display: inline-flex; align-items: center;
+    margin-right: 10px; flex-shrink: 0;
+    background: var(--accent); color: #000; border: none;
+    padding: 5px 11px; cursor: pointer; border-radius: 5px;
+    font-family: var(--mono); font-size: 10px; font-weight: 900;
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+  body.mobile-trace-view #edit-code-btn:active { opacity: .8; }
+
+  /* Sticky source-line header — sits right above the scrolling viz so it
+     stays visible. Tells you which line of code produced this state. */
+  body.mobile-trace-view #mobile-line-head {
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
+    background: #0d0d0d;
+    border-bottom: 1.5px solid var(--ink);
+    padding: 11px 14px;
+    font-family: var(--mono);
+  }
+  #mobile-line-head .mlh-num {
+    color: var(--accent); font-weight: 900; font-size: 11px;
+    flex-shrink: 0;
+  }
+  #mobile-line-head .mlh-src {
+    color: #ededed; font-size: 13px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
+
 /* Mobile drawer (hidden on desktop, shown via JS toggle) */
 #mobile-drawer {
   display: none; position: fixed; top: 56px; right: 8px;

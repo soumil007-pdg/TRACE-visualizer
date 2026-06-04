@@ -330,6 +330,22 @@ body.dv { user-select: none; cursor: row-resize; }
   cursor: pointer;
   transition: opacity .12s, transform .08s;
   flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 9px;
+}
+/* CSS-drawn play triangle (renders identically on every device — no emoji) */
+.ico-run {
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent currentColor;
+  flex-shrink: 0;
+}
+/* CSS-drawn lightning bolt for LIVE */
+.ico-bolt {
+  width: 9px; height: 13px;
+  background: currentColor;
+  clip-path: polygon(52% 0, 0 60%, 40% 60%, 32% 100%, 100% 38%, 56% 38%);
+  flex-shrink: 0;
 }
 #run:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
 #run:active:not(:disabled) { opacity: 1; transform: translateY(0); }
@@ -348,6 +364,7 @@ body.dv { user-select: none; cursor: row-resize; }
   cursor: pointer; flex-shrink: 0;
   transition: all .15s;
   position: relative;
+  display: inline-flex; align-items: center; gap: 7px;
 }
 #live-btn:hover { border-color: var(--accent); color: var(--accent); }
 #live-btn.on {
@@ -391,6 +408,33 @@ body.dv { user-select: none; cursor: row-resize; }
 .tbtn.play.on { background: var(--pink); color: #fff; border-color: var(--pink); }
 .tbtn.play.on:hover:not(:disabled) { background: var(--pink); border-color: var(--pink); }
 #tgrp { display: flex; gap: 3px; }
+
+/* ── CSS-drawn transport icons (no Unicode glyphs / emoji) ──────────── */
+.tbtn.icon-prev::before {
+  content: ''; width: 0; height: 0; border-style: solid;
+  border-width: 6px 9px 6px 0;
+  border-color: transparent currentColor transparent transparent;
+}
+.tbtn.icon-next::before {
+  content: ''; width: 0; height: 0; border-style: solid;
+  border-width: 6px 0 6px 9px;
+  border-color: transparent transparent transparent currentColor;
+}
+/* Play state: right-pointing triangle */
+.tbtn.play::before {
+  content: ''; width: 0; height: 0; border-style: solid;
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent currentColor;
+  margin-left: 2px;
+}
+/* Playing state: two pause bars (overrides the triangle) */
+.tbtn.play.on::before {
+  content: ''; width: 9px; height: 12px;
+  border: none; margin-left: 0;
+  border-left: 3px solid currentColor;
+  border-right: 3px solid currentColor;
+  background: transparent;
+}
 
 /* Progress block */
 #pblock { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 90px; }
