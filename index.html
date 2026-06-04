@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0a"/>
+
+<!-- ── Primary SEO ─────────────────────────────────────────────────── -->
+<title>Trace — Visualize Python Code &amp; Algorithms in Your Browser</title>
+<meta name="description" content="Trace runs your Python code line-by-line in the browser and visualizes every step — arrays, linked lists, trees, heaps, graphs, recursion. Free interactive algorithm visualizer for LeetCode practice, DSA learning, and teaching."/>
+<meta name="keywords" content="python visualizer, algorithm visualizer, code visualizer, leetcode visualizer, dsa visualizer, python tutor, recursion tree, data structure visualization, binary tree visualizer, linked list visualizer, online python"/>
+<meta name="author" content="Trace"/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://trace.dev/"/>
+
+<!-- ── Favicon ─────────────────────────────────────────────────────── -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+<link rel="apple-touch-icon" href="favicon.svg"/>
+
+<!-- ── Open Graph (Facebook, LinkedIn, Slack, Discord) ─────────────── -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Trace"/>
+<meta property="og:title" content="Trace — Visualize Python Code &amp; Algorithms in Your Browser"/>
+<meta property="og:description" content="Run Python line-by-line and watch every variable, array, tree, heap, and recursion call come alive. Free interactive algorithm visualizer for LeetCode & DSA."/>
+<meta property="og:url" content="https://trace.dev/"/>
+<meta property="og:image" content="https://trace.dev/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+
+<!-- ── Twitter Card ────────────────────────────────────────────────── -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Trace — Visualize Python Code &amp; Algorithms"/>
+<meta name="twitter:description" content="Run Python line-by-line and watch every variable, array, tree, heap, and recursion call come alive. Free interactive algorithm visualizer."/>
+<meta name="twitter:image" content="https://trace.dev/og-image.png"/>
+
+<!-- ── Structured data (rich results) ──────────────────────────────── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Trace",
+  "url": "https://trace.dev/",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Any (web browser)",
+  "description": "Interactive Python algorithm visualizer. Runs code line-by-line in the browser and visualizes arrays, linked lists, trees, heaps, graphs, and recursion.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Line-by-line Python execution",
+    "Array, linked list, tree, heap, graph visualization",
+    "Recursion tree and call stack",
+    "Live edit mode",
+    "LeetCode input parsing"
+  ]
+}
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700;900&display=swap"/>
+
+<!-- CodeMirror -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+
+<!-- App stylesheets (load order matters: base → visualizer → themes → pro) -->
+<link rel="stylesheet" href="css/base.css?v=78"/>
+<link rel="stylesheet" href="css/visualizer.css?v=78"/>
+<link rel="stylesheet" href="css/themes.css?v=78"/>
+<link rel="stylesheet" href="css/pro.css?v=78"/>
+
+<!-- Inline: apply saved theme before first paint to prevent flash -->
+<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
+</head>
+<body>
+
+<!-- ── Loading screen ──────────────────────────────────────────────── -->
+<div id="loading">
+  <div class="spin-ring"></div>
+  <div class="load-label">
+    <strong>TRACE</strong>
+    Loading Python Runtime · Pyodide WASM<br/>First load ~5–10 seconds
+  </div>
+</div>
+
+<!-- ── Top progress stripe ─────────────────────────────────────────── -->
+<div id="topstripe"><div id="topstripe-fill"></div></div>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">Tr</div>
+    <div class="logo-name">TRA<span>CE</span></div>
+  </div>
+
+  <div class="hm">
+    <label for="tmpl">Example</label>
+    <select id="tmpl">
+      <option value="blank">── Blank (paste your own) ──</option>
+      <option value="binary_search">Array · Binary Search</option>
+      <option value="bubble_sort">Array · Bubble Sort</option>
+      <option value="two_sum">Array · Two Sum (hashmap)</option>
+      <option value="ll_reverse">Linked List · Reverse</option>
+      <option value="ll_cycle">Linked List · Detect Cycle</option>
+      <option value="tree_inorder">Binary Tree · Inorder Traversal</option>
+      <option value="tree_depth">Binary Tree · Max Depth</option>
+      <option value="grid_islands">Grid · Number of Islands</option>
+      <option value="top_k_freq">Heap + HashMap · Top K Frequent</option>
+      <option value="k_closest">Heap · K Closest Points</option>
+    </select>
+  </div>
+
+  <div id="status" class="loading">
+    <div class="sdot"></div>
+    <span id="stxt">Initializing…</span>
+  </div>
+  <span class="save-status" id="save-status" title="Auto-save status">Auto-save</span>
+
+  <!-- Snippets dropdown -->
+  <div class="dropdown" id="snippets-dd">
+    <button class="hbtn" id="btn-snippets" title="Manage saved snippets">
+      <span>Snippets</span>
+      <span class="kbd">⌘K</span>
+    </button>
+    <div class="dropdown-menu" id="snippets-menu">
+      <div class="dh">My Snippets</div>
+      <div id="snippets-list"></div>
+      <div class="dropdown-actions">
+        <button id="snip-save">Save Current</button>
+        <button id="snip-import">Import</button>
+        <button id="snip-export">Export All</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="hbtn" id="btn-share" title="Generate shareable URL">
+    <span>Share</span>
+  </button>
+  <button class="hbtn" id="btn-help" title="Show keyboard shortcuts and help">
+    <span>?</span>
+  </button>
+
+  <button id="mobile-menu-btn" title="Menu">☰</button>
+
+  <div id="theme-picker" title="Choose theme">
+    <div class="tsw active" data-t="light" title="Light"></div>
+    <div class="tsw"        data-t="dark"  title="Dark"></div>
+    <div class="tsw"        data-t="night" title="Ocean"></div>
+    <div class="tsw"        data-t="dusk"  title="Slate"></div>
+    <div class="tsw"        data-t="ember" title="Nord"></div>
+  </div>
+  <button id="themetgl" title="Toggle dark / light mode">🌙</button>
+</header>
+
+<!-- ── Mobile drawer (hidden on desktop) ───────────────────────────── -->
+<div id="mobile-drawer">
+  <button class="hbtn always-mobile" id="m-snippets">Snippets</button>
+  <button class="hbtn always-mobile" id="m-save">Save Snippet</button>
+  <button class="hbtn always-mobile" id="m-share">Share URL</button>
+  <button class="hbtn always-mobile" id="m-help">Help / Shortcuts</button>
+  <div id="theme-picker-mobile" style="display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--ink);margin-top:4px;justify-content:center;">
+    <div class="tsw" data-t="light" title="Light" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#FAF7F2;cursor:pointer;"></div>
+    <div class="tsw" data-t="dark"  title="Dark"  style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#0a0a0a;cursor:pointer;"></div>
+    <div class="tsw" data-t="night" title="Ocean" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#020817;cursor:pointer;"></div>
+    <div class="tsw" data-t="dusk"  title="Slate" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#0f172a;cursor:pointer;"></div>
+    <div class="tsw" data-t="ember" title="Nord"  style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#242933;cursor:pointer;"></div>
+  </div>
+</div>
+
+<!-- ── Help Modal ──────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="help-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">⌘ Help · Keyboard Shortcuts · Tips</div>
+      <button class="modal-close" data-close="help-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <h4>Keyboard Shortcuts</h4>
+      <div class="kbd-grid">
+        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">↵</span></div><div class="desc">Run code</div>
+        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">/</span></div><div class="desc">Toggle comment (line or selection)</div>
+        <div class="kc"><span class="key">←</span></div><div class="desc">Step backward</div>
+        <div class="kc"><span class="key">→</span></div><div class="desc">Step forward</div>
+        <div class="kc"><span class="key">Space</span></div><div class="desc">Play / Pause animation</div>
+        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">S</span></div><div class="desc">Save current code as snippet</div>
+        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">K</span></div><div class="desc">Open snippets menu</div>
+        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">D</span></div><div class="desc">Toggle dark / light mode</div>
+        <div class="kc"><span class="key">Home</span></div><div class="desc">Jump to first step</div>
+        <div class="kc"><span class="key">End</span></div><div class="desc">Jump to last step</div>
+        <div class="kc"><span class="key">?</span></div><div class="desc">Show this help</div>
+        <div class="kc"><span class="key">Esc</span></div><div class="desc">Close modal / stop playback</div>
+      </div>
+
+      <h4>What is Trace?</h4>
+      <p>Trace runs Python code line-by-line in your browser (via Pyodide / WebAssembly) and visualizes every variable mutation — heaps as trees, linked lists as chains, grids as cells, sets/dicts/queues as native shapes. Perfect for understanding LeetCode solutions, teaching algorithms, or debugging tricky logic.</p>
+
+      <h4>Supported Input Formats</h4>
+      <ul>
+        <li><code>nums = [1,2,3], target = 9</code> — standard LeetCode format</li>
+        <li><code>head = [1,2,3], pos = 1</code> — auto-builds linked lists (with cycles)</li>
+        <li><code>root = [3,9,20,null,null,15,7]</code> — auto-builds binary trees</li>
+        <li><code>["MedianFinder", "addNum", ...] / [[], [1], ...]</code> — Design problems (auto-detected)</li>
+        <li>Paste directly from LeetCode — <code>Input:</code> prefix handled automatically</li>
+      </ul>
+
+      <h4>Auto-Save &amp; Persistence</h4>
+      <p>Your code and test input are saved to your browser's local storage automatically as you type. Reload the page anytime — your work is preserved. Use <strong>Save Snippet</strong> to keep a named copy of any solution you want to revisit.</p>
+
+      <h4>Sharing</h4>
+      <p>Click <strong>Share</strong> to generate a URL that encodes your code + input. Anyone with the link can open the same scenario in their browser — no account required.</p>
+
+      <h4>Tips</h4>
+      <ul>
+        <li>The bar at the very top shows your playback progress through all snapshots.</li>
+        <li>Variables that changed since the last step are <em>highlighted</em> in green.</li>
+        <li>Heap visualizations show raw stored values — for negated max-heaps, you'll see negative numbers.</li>
+        <li>For OOP problems, instance attributes (<code>self.x</code>) are auto-captured and shown.</li>
+        <li>If execution hangs, the runtime caps at 1000 steps to protect against infinite loops.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── Save Snippet Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="save-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <div class="modal-title">💾 Save Snippet</div>
+      <button class="modal-close" data-close="save-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-top:0;">Give this snippet a memorable name. It will be saved in your browser only.</p>
+      <div class="input-row">
+        <input id="snip-name-input" type="text" placeholder="e.g. Two Sum — hashmap" maxlength="60" autocomplete="off"/>
+        <button id="snip-name-save">Save</button>
+      </div>
+      <p style="font-size:11px;color:var(--gray);margin-top:10px;">Tip: existing snippet with the same name will be overwritten.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Share Modal ─────────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="share-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <div class="modal-title">🔗 Share This Trace</div>
+      <button class="modal-close" data-close="share-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-top:0;">Copy this URL — anyone who opens it will see exactly your code &amp; test input.</p>
+      <div class="input-row">
+        <input id="share-url-input" type="text" readonly/>
+        <button id="share-copy">Copy</button>
+      </div>
+      <p style="font-size:11px;color:var(--gray);margin-top:10px;">The URL contains your code (encoded). It works without any backend or account.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Bug Report Modal ────────────────────────────────────────────── -->
+<div class="modal-backdrop" id="bug-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head">
+      <div class="modal-title">🐞 Report a Problem</div>
+      <button class="modal-close" data-close="bug-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-top:0;">Something not working, or a wrong visualization? Tell us what happened — your current code &amp; test input are attached automatically so we can reproduce it.</p>
+      <textarea id="bug-desc" rows="4" placeholder="e.g. The recursion tree is wrong for this DFS solution…" style="width:100%;font-family:var(--mono);font-size:12px;padding:10px;border:1.5px solid var(--ink);background:var(--white);color:var(--text);resize:vertical;"></textarea>
+      <div class="input-row" style="margin-top:10px;justify-content:flex-end;">
+        <button id="bug-send">Send Report</button>
+      </div>
+      <p style="font-size:11px;color:var(--gray);margin-top:6px;">We attach: your code, test input, current step, theme, and browser info. No personal data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Floating bug-report button -->
+<button id="bug-fab" title="Report a problem">🐞</button>
+
+<!-- ── Toast container ─────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ── Main split layout ───────────────────────────────────────────── -->
+<div id="main">
+  <!-- LEFT: editor + test input -->
+  <section id="left">
+    <div id="left-top">
+      <div class="ch-head">
+        <span class="ch-num">01</span>
+        <span class="ch-label">Solution Code</span>
+        <span class="ch-sep"></span>
+        <span class="ch-info">ListNode · TreeNode · Optional · auto-available</span>
+      </div>
+      <div class="edflex"><textarea id="code"></textarea></div>
+    </div>
+
+    <div class="vres" id="vr"></div>
+
+    <div id="left-bot">
+      <div class="ch-head">
+        <span class="ch-num">02</span>
+        <span class="ch-label">Test Input</span>
+        <span class="ch-sep"></span>
+        <div id="badgerow">
+          <span id="pbadge">detecting</span>
+          <span id="tgl">show →</span>
+        </div>
+        <span class="ch-info" style="margin-left:6px;">paste from LeetCode as-is</span>
+      </div>
+      <textarea id="tinput" placeholder="Paste LeetCode test input exactly as given:
+
+head = [3,2,0,-4]
+pos = 1
+
+or:  root = [3,9,20,null,null,15,7]
+or:  grid = [[&quot;1&quot;,&quot;1&quot;,&quot;0&quot;],[&quot;0&quot;,&quot;1&quot;,&quot;0&quot;]]
+or:  nums = [2,7,11,15]
+     target = 9"></textarea>
+      <div id="genprev" class="hidden"></div>
+    </div>
+  </section>
+
+  <div class="hres" id="hr"></div>
+
+  <!-- RIGHT: visualizer -->
+  <section id="right">
+    <div class="ch-head">
+      <span class="ch-num">03</span>
+      <span class="ch-label">Execution Trace</span>
+      <span class="ch-sep"></span>
+      <span class="ch-info" id="lineid"></span>
+    </div>
+    <div id="viz">
+      <div id="errbanner"></div>
+      <div id="vc"><div class="empty">Select an example above — or paste your LeetCode solution + test input → RUN</div></div>
+    </div>
+    <div id="result-panel">
+      <div class="rp-head">Final Result</div>
+      <div id="result-body"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ── Bottom transport bar ────────────────────────────────────────── -->
+<nav id="bottom">
+  <button id="run" disabled>▶&nbsp;RUN</button>
+  <button id="live-btn" title="Auto-run 1 s after you stop typing">⚡&nbsp;LIVE</button>
+  <div class="bdiv"></div>
+  <div id="tgrp">
+    <button class="tbtn" id="sb"   disabled title="Step back">◀</button>
+    <button class="tbtn play" id="play" disabled title="Play / Pause">▶</button>
+    <button class="tbtn" id="sf"   disabled title="Step forward">▶</button>
+  </div>
+  <div class="bdiv"></div>
+  <div id="pblock">
+    <span id="pnum">— / —</span>
+    <div id="ptrack"><div id="pfill"></div></div>
+  </div>
+  <div id="sblock">
+    <span id="slabel">Speed</span>
+    <input id="speed" type="range" min="1" max="20" value="5"/>
+    <span id="sval">5×</span>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     Third-party libraries
+     ══════════════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     Config + analytics (load before app so keys/tracking are ready).
+     Edit js/config.js to plug in your PostHog / Sentry keys.
+     ══════════════════════════════════════════════════════════════════ -->
+<script src="js/config.js?v=78"></script>      <!-- TRACE_CONFIG (keys)                  -->
+<script src="js/analytics.js?v=78"></script>   <!-- PostHog, Sentry, bug reports         -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     Application modules — load order is significant (no bundler/ESM).
+     Each file appends globals to window scope; later scripts can call
+     functions from earlier scripts freely.
+     ══════════════════════════════════════════════════════════════════ -->
+<script src="js/utils.js?v=78"></script>       <!-- esc, fv                              -->
+<script src="js/storage.js?v=78"></script>     <!-- Store, Toast                         -->
+<script src="js/tracer.js?v=78"></script>      <!-- TRACER (Python string)               -->
+<script src="js/templates.js?v=78"></script>   <!-- TMPL                                 -->
+<script src="js/parser.js?v=78"></script>      <!-- buildDriver + helpers                -->
+<script src="js/renderers.js?v=78"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
+<script src="js/renderers-recursion.js?v=78"></script> <!-- rRecursionPanels (call stack + tree) -->
+<script src="js/render-core.js?v=78"></script>         <!-- snaps/cur/prev state, render()    -->
+<script src="js/runner.js?v=78"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
+<script src="js/controls.js?v=78"></script>    <!-- cm, tiEl, transport buttons, theme   -->
+<script src="js/pro-ui.js?v=78"></script>      <!-- snippets, modals, share, mobile      -->
+<script src="js/shortcuts.js?v=78"></script>   <!-- keyboard shortcuts                   -->
+<script src="js/app.js?v=78"></script>         <!-- restoreState + initPyodide kickoff   -->
+
+</body>
+</html>

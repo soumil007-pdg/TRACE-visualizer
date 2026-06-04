@@ -1,0 +1,216 @@
+/* ══════════════════════════════════════════════════════════════════════
+   themes.css ─ Theme variants + dark-mode renderer overrides.
+   To add a new theme:
+     1. Add a `[data-theme="myname"] { --vars... }` block below.
+     2. Add a `<div class="tsw" data-t="myname">` swatch in index.html.
+     3. (Optional) tune CodeMirror colors per theme.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════════════
+   TONAL FOREGROUNDS — auto-derived from any surface var.
+   Keep the surface's hue + chroma, flip its lightness. Readable,
+   hue-coherent text on every theme with zero per-theme overrides.
+   Pure CSS Color 5 (oklch + relative-color syntax).
+   ══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* Steeper than pure 1-l: pushes derived lightness ≥0.78 even when the
+     surface sits at mid-dark (L≈0.30, e.g. ember). Verified WCAG AA across
+     all five themes, AAA on four of them (math in scripts/contrast_test). */
+  --tonal-fg-on-white:  oklch(from var(--white)  clamp(0.14, calc(1.05 - l * 0.85), 0.94) calc(c * 0.6)  h);
+  --tonal-fg-on-cream:  oklch(from var(--cream)  clamp(0.14, calc(1.05 - l * 0.85), 0.94) calc(c * 0.6)  h);
+  --tonal-fg-on-ink:    oklch(from var(--ink)    clamp(0.14, calc(1.05 - l * 0.85), 0.94) calc(c * 0.6)  h);
+  --tonal-fg-on-accent: oklch(from var(--accent) clamp(0.10, calc(1.05 - l * 0.95), 0.97) calc(c * 0.35) h);
+  --tonal-fg-on-pink:   oklch(from var(--pink)   clamp(0.10, calc(1.05 - l * 0.95), 0.97) calc(c * 0.35) h);
+  /* Softer mid-tone for "empty / zero" cells — still ≥ AA contrast everywhere. */
+  --tonal-fg-muted-on-white:
+    oklch(from var(--white) clamp(0.40, calc(0.34 + (1 - l) * 0.55), 0.78) calc(c * 0.4) h);
+}
+
+/* ── Dark — pure neutral (Linear / Vercel style) ─────────────────── */
+[data-theme="dark"] {
+  --cream:  #0a0a0a;
+  --white:  #111111;
+  --ink:    #2a2a2a;
+  --text:   #fafafa;
+  --muted:  #a1a1aa;
+  --gray:   #52525b;
+  --accent: #00c9a7;
+  --pink:   #f472b6;
+  --blue:   #60a5fa;
+  --green:  #34d399;
+  --red:    #f87171;
+  --purple: #a78bfa;
+}
+
+/* ── Ocean — deep navy + sky blue (Raycast / Stripe) ─────────────── */
+[data-theme="night"] {
+  --cream:  #020817;  --white:  #0f172a;
+  --ink:    #1e3a5f;  --text:   #e2e8f0;
+  --muted:  #94a3b8;  --gray:   #475569;
+  --accent: #38bdf8;  --pink:   #f472b6;
+  --blue:   #60a5fa;  --green:  #34d399;
+  --red:    #f87171;  --purple: #a78bfa;
+}
+
+/* ── Slate — Tailwind dark + indigo (Linear) ─────────────────────── */
+[data-theme="dusk"] {
+  --cream:  #0f172a;  --white:  #1e293b;
+  --ink:    #334155;  --text:   #f1f5f9;
+  --muted:  #94a3b8;  --gray:   #64748b;
+  --accent: #818cf8;  --pink:   #f472b6;
+  --blue:   #60a5fa;  --green:  #4ade80;
+  --red:    #f87171;  --purple: #c084fc;
+}
+
+/* ── Nord — beloved dev theme (frost blue) ───────────────────────── */
+[data-theme="ember"] {
+  --cream:  #242933;  --white:  #2e3440;
+  --ink:    #4c566a;  --text:   #eceff4;
+  --muted:  #d8dee9;  --gray:   #636e7b;
+  --accent: #88c0d0;  --pink:   #bf616a;
+  --blue:   #81a1c1;  --green:  #a3be8c;
+  --red:    #bf616a;  --purple: #b48ead;
+}
+
+/* ── Per-theme CodeMirror editor overrides ───────────────────────── */
+/* Dark */
+[data-theme="dark"] .CodeMirror { background: #0a0a0a !important; color: #fafafa !important; }
+[data-theme="dark"] .CodeMirror-gutters { background: #111111 !important; border-right-color: #2a2a2a !important; }
+[data-theme="dark"] .CodeMirror-linenumber { color: #3f3f46 !important; }
+[data-theme="dark"] .cm-def       { color: #fafafa !important; }
+[data-theme="dark"] .cm-variable  { color: #fafafa !important; }
+[data-theme="dark"] .cm-operator  { color: #a1a1aa !important; }
+[data-theme="dark"] .cm-comment   { color: #3f3f46 !important; }
+[data-theme="dark"] .cm-number    { color: #34d399 !important; font-weight: 700; }
+/* Ocean */
+[data-theme="night"] .CodeMirror { background: #020817 !important; color: #e2e8f0 !important; }
+[data-theme="night"] .CodeMirror-gutters { background: #0f172a !important; border-right-color: #1e3a5f !important; }
+[data-theme="night"] .CodeMirror-linenumber { color: #334155 !important; }
+[data-theme="night"] .cm-def      { color: #e2e8f0 !important; font-weight:700; }
+[data-theme="night"] .cm-variable { color: #e2e8f0 !important; }
+[data-theme="night"] .cm-comment  { color: #475569 !important; font-style:italic; }
+[data-theme="night"] .cm-number   { color: #34d399 !important; font-weight:700; }
+[data-theme="night"] .cm-string   { color: #f472b6 !important; }
+[data-theme="night"] .cm-keyword  { color: #38bdf8 !important; font-weight:700; }
+[data-theme="night"] .CodeMirror-selected { background: rgba(56,189,248,.2) !important; }
+[data-theme="night"] .CodeMirror-linebackground.hl { background: rgba(56,189,248,.12) !important; }
+/* Slate */
+[data-theme="dusk"] .CodeMirror { background: #0f172a !important; color: #f1f5f9 !important; }
+[data-theme="dusk"] .CodeMirror-gutters { background: #1e293b !important; border-right-color: #334155 !important; }
+[data-theme="dusk"] .CodeMirror-linenumber { color: #475569 !important; }
+[data-theme="dusk"] .cm-def      { color: #f1f5f9 !important; font-weight:700; }
+[data-theme="dusk"] .cm-variable { color: #f1f5f9 !important; }
+[data-theme="dusk"] .cm-comment  { color: #475569 !important; font-style:italic; }
+[data-theme="dusk"] .cm-number   { color: #4ade80 !important; font-weight:700; }
+[data-theme="dusk"] .cm-string   { color: #f472b6 !important; }
+[data-theme="dusk"] .cm-keyword  { color: #818cf8 !important; font-weight:700; }
+[data-theme="dusk"] .CodeMirror-selected { background: rgba(129,140,248,.22) !important; }
+[data-theme="dusk"] .CodeMirror-linebackground.hl { background: rgba(129,140,248,.13) !important; }
+/* Nord */
+[data-theme="ember"] .CodeMirror { background: #242933 !important; color: #eceff4 !important; }
+[data-theme="ember"] .CodeMirror-gutters { background: #2e3440 !important; border-right-color: #4c566a !important; }
+[data-theme="ember"] .CodeMirror-linenumber { color: #4c566a !important; }
+[data-theme="ember"] .cm-def      { color: #eceff4 !important; font-weight:700; }
+[data-theme="ember"] .cm-variable { color: #eceff4 !important; }
+[data-theme="ember"] .cm-comment  { color: #636e7b !important; font-style:italic; }
+[data-theme="ember"] .cm-number   { color: #a3be8c !important; font-weight:700; }
+[data-theme="ember"] .cm-string   { color: #bf616a !important; }
+[data-theme="ember"] .cm-keyword  { color: #88c0d0 !important; font-weight:700; }
+[data-theme="ember"] .CodeMirror-selected { background: rgba(136,192,208,.22) !important; }
+[data-theme="ember"] .CodeMirror-linebackground.hl { background: rgba(136,192,208,.13) !important; }
+
+/* ── Theme picker swatches in header ─────────────────────────────── */
+#theme-picker { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.tsw {
+  width: 18px; height: 18px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer; flex-shrink: 0;
+  transition: transform .12s, border-color .12s;
+  position: relative;
+}
+.tsw:hover { transform: scale(1.2); }
+.tsw.active { border-color: rgba(255,255,255,.7); transform: scale(1.15); }
+
+/* Responsive theme picker (compressed on medium screens) */
+@media (max-width: 1200px) and (min-width: 881px) {
+  #theme-picker { gap: 3px; }
+  .tsw { width: 14px; height: 14px; border-width: 1.5px; }
+  .tsw:hover { transform: scale(1.15); }
+  .tsw.active { transform: scale(1.1); }
+}
+
+@media (max-width: 880px) {
+  #theme-picker { gap: 4px; }
+  .tsw { width: 16px; height: 16px; }
+}
+.tsw[data-t="light"]  { background: #f3f1ed; border-color: rgba(255,255,255,.3); }
+.tsw[data-t="dark"]   { background: #00c9a7; border: 2px solid rgba(255,255,255,.15); }
+.tsw[data-t="night"]  { background: linear-gradient(135deg, #0f172a 50%, #38bdf8 50%); }
+.tsw[data-t="dusk"]   { background: linear-gradient(135deg, #1e293b 50%, #818cf8 50%); }
+.tsw[data-t="ember"]  { background: linear-gradient(135deg, #2e3440 50%, #88c0d0 50%); }
+
+/* ── Toggle button (sun/moon) ────────────────────────────────────── */
+#themetgl {
+  background: rgba(0, 201, 167, 0.12);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-size: 15px; line-height: 1;
+  width: 32px; height: 32px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+  flex-shrink: 0; padding: 0; border-radius: 4px;
+  box-shadow: inset 0 0 8px rgba(0, 201, 167, 0.15);
+}
+#themetgl:hover {
+  border-color: var(--accent);
+  color: var(--white);
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(0, 201, 167, 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   DARK-THEME RENDERER OVERRIDES
+   These ensure all visualizer cards, chips, dict tables, etc. use the
+   darker palette (var(--white), var(--ink)) under any dark theme.
+   ══════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] .vb,  [data-theme="night"] .vb,  [data-theme="dusk"] .vb,  [data-theme="ember"] .vb
+  { background: var(--white); border-color: var(--ink); }
+/* .chip, .chip.ch, .ll-n — base rules in visualizer.css already use
+   var(--white)/var(--blue)/etc, which the themes redefine. Per-theme
+   overrides here were redundant AND broke variants (.chip.ch, .ll-n.hi)
+   because they have equal specificity and load later in the cascade. */
+[data-theme="dark"] .chip.ch, [data-theme="night"] .chip.ch, [data-theme="dusk"] .chip.ch, [data-theme="ember"] .chip.ch
+  { border-color: var(--accent); }
+[data-theme="dark"] .sp, [data-theme="night"] .sp, [data-theme="dusk"] .sp, [data-theme="ember"] .sp
+  { background: var(--white); border-color: var(--ink); }
+[data-theme="dark"] #pbadge, [data-theme="night"] #pbadge, [data-theme="dusk"] #pbadge, [data-theme="ember"] #pbadge
+  { background: var(--white); color: var(--muted); border-color: var(--ink); }
+/* .dt td bg/border + .dt td.ch + .gc.zero — same story, redundant overrides
+   removed so variant rules in visualizer.css aren't overridden. */
+[data-theme="dark"] .dt td.k, [data-theme="night"] .dt td.k, [data-theme="dusk"] .dt td.k, [data-theme="ember"] .dt td.k
+  { color: var(--blue); }
+[data-theme="dark"] .chip .k, [data-theme="night"] .chip .k, [data-theme="dusk"] .chip .k, [data-theme="ember"] .chip .k
+  { color: var(--blue); }
+[data-theme="dark"] .bv, [data-theme="night"] .bv, [data-theme="dusk"] .bv, [data-theme="ember"] .bv
+  { color: var(--text); }
+[data-theme="dark"] #tinput, [data-theme="night"] #tinput, [data-theme="dusk"] #tinput, [data-theme="ember"] #tinput
+  { background: var(--cream); color: var(--text); }
+[data-theme="dark"] #tinput::placeholder, [data-theme="night"] #tinput::placeholder, [data-theme="dusk"] #tinput::placeholder, [data-theme="ember"] #tinput::placeholder
+  { color: var(--gray); }
+[data-theme="dark"] #genprev, [data-theme="night"] #genprev, [data-theme="dusk"] #genprev, [data-theme="ember"] #genprev
+  { background: var(--white); color: var(--muted); border-top-color: var(--ink); }
+[data-theme="dark"] .stmt-panel, [data-theme="night"] .stmt-panel, [data-theme="dusk"] .stmt-panel, [data-theme="ember"] .stmt-panel
+  { background: var(--white); border-color: var(--ink); }
+[data-theme="dark"] .cond-panel, [data-theme="night"] .cond-panel, [data-theme="dusk"] .cond-panel, [data-theme="ember"] .cond-panel
+  { background: var(--white); border-color: var(--ink); }
+[data-theme="dark"] #result-panel, [data-theme="night"] #result-panel, [data-theme="dusk"] #result-panel, [data-theme="ember"] #result-panel
+  { background: var(--white); border-top-color: var(--ink); }
+/* .idx-cell / .queue-cell — base rules already use var(--white), the
+   theme remaps that variable. Removing these dark-theme overrides
+   restores the .at-ptr / .ch / .q-front / .q-ch / .in-win variant
+   backgrounds that were getting clobbered. */
+[data-theme="dark"] .ll-nil, [data-theme="night"] .ll-nil, [data-theme="dusk"] .ll-nil, [data-theme="ember"] .ll-nil
+  { border-color: var(--ink); color: var(--gray); }
+[data-theme="dark"] .vb h3::after, [data-theme="night"] .vb h3::after, [data-theme="dusk"] .vb h3::after, [data-theme="ember"] .vb h3::after
+  { background: var(--ink); }

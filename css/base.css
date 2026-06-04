@@ -1,0 +1,435 @@
+/* ══════════════════════════════════════════════════════════════════════
+   base.css ─ Resets, design tokens, layout grid, header, editor, controls.
+   Defines all CSS custom properties (--cream, --ink, --accent, etc.) for
+   the LIGHT theme. Theme overrides live in themes.css.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens (light theme defaults) ─────────────────────────── */
+:root {
+  --cream:  #f3f1ed;
+  --white:  #ffffff;
+  --black:  #0e0e0e;
+  --ink:    #1c1c1c;       /* borders / shadows */
+  --accent: #00c9a7;       /* teal — primary accent */
+  --yellow: #f59e0b;       /* amber — warnings only */
+  --pink:   #f0166e;       /* pointers / changed-state */
+  --blue:   #3b82f6;
+  --green:  #10b981;
+  --red:    #ef4444;
+  --purple: #8b5cf6;
+  --gray:   #9ca3af;
+  --text:   #111111;
+  --muted:  #6b7280;
+  --sh:  2px 2px 0 var(--ink);
+  --shL: 3px 3px 0 var(--ink);
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+  --ui:   "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--ui);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header (always dark for brand consistency) ───────────────────── */
+header {
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  gap: 16px;
+  background: #080808;
+  border-bottom: 1px solid #1f1f1f;
+  position: relative;
+  z-index: 20;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-width: 0;
+}
+.logo { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.logo-mark {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 900;
+  color: #000;
+  letter-spacing: -1px;
+  flex-shrink: 0;
+}
+.logo-name {
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 900;
+  letter-spacing: 5px;
+  color: rgba(255,255,255,.85);
+  text-transform: uppercase;
+}
+.logo-name span { color: var(--accent); }
+
+.hm { display: flex; align-items: center; gap: 10px; flex: 0 1 auto; justify-content: center; min-width: 0; }
+.hm label {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,.4); font-weight: 700;
+  white-space: nowrap;
+}
+#tmpl {
+  background: #161616;
+  color: rgba(255,255,255,.7);
+  border: 1px solid #2a2a2a;
+  padding: 5px 10px;
+  font-family: var(--mono); font-size: 11px;
+  cursor: pointer; outline: none;
+  min-width: 200px;
+  flex-shrink: 1;
+  -webkit-appearance: none; appearance: none;
+  transition: border-color .15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#tmpl:focus { border-color: var(--accent); outline: none; }
+#tmpl:hover { border-color: #444; }
+
+/* ── Status indicator (dot + label) ───────────────────────────────── */
+#status {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  color: rgba(255,255,255,.5); text-transform: uppercase;
+  flex-shrink: 0;
+}
+.sdot {
+  width: 10px; height: 10px;
+  border: 2px solid rgba(255,255,255,.3);
+  background: transparent;
+  flex-shrink: 0;
+  transition: all .3s;
+}
+#status.loading .sdot { background: var(--accent); border-color: var(--accent); animation: pulse .8s ease infinite alternate; }
+#status.ready   .sdot { background: var(--green);  border-color: var(--green); }
+#status.err     .sdot { background: var(--red);    border-color: var(--red); }
+@keyframes pulse { from { opacity:.3; } to { opacity:1; } }
+
+/* ── Top progress stripe ──────────────────────────────────────────── */
+#topstripe { height: 3px; background: #222; flex-shrink: 0; }
+#topstripe-fill { height: 100%; width: 0%; background: var(--accent); transition: width .12s linear; }
+
+/* ── Main split layout ────────────────────────────────────────────── */
+#main { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+#left {
+  display: flex; flex-direction: column;
+  width: 46%; min-width: 200px; max-width: 78%;
+  border-right: 1.5px solid var(--ink);
+  background: var(--cream);
+}
+
+/* ── Live mode — animated electricity border on the left panel ───────
+   @property lets us animate the conic-gradient angle directly.
+   Two bright sparks rotate around all four edges continuously.
+   pointer-events:none keeps every click / drag working normally.
+   ─────────────────────────────────────────────────────────────────── */
+/* ── Live mode — all three section bars breathe with teal energy ─────
+   body.live-active targets 01, 02, AND 03 simultaneously.
+   The whole bar background pulses + the number label glows.
+   ─────────────────────────────────────────────────────────────────── */
+@keyframes live-bar-breathe {
+  0%, 100% {
+    background: #0d0d0d;
+    box-shadow: none;
+  }
+  50% {
+    background: oklch(from var(--accent) l c h / .10);
+    box-shadow: 0 1px 8px oklch(from var(--accent) l c h / .28),
+                inset 0 0 24px oklch(from var(--accent) l c h / .06);
+  }
+}
+@keyframes live-num-glow {
+  0%, 100% { opacity: .7;  text-shadow: none; }
+  50%       { opacity: 1;   text-shadow: 0 0 10px oklch(from var(--accent) l c h / .9),
+                                         0 0 20px oklch(from var(--accent) l c h / .4); }
+}
+body.live-active .ch-head {
+  animation: live-bar-breathe 2.4s ease-in-out infinite;
+}
+body.live-active .ch-num {
+  animation: live-num-glow 2.4s ease-in-out infinite;
+}
+/* ── Live mode — visualization card titles breathe with accent energy ── */
+@keyframes live-vb-header-breathe {
+  0%, 100% {
+    color: var(--text);
+    text-shadow: none;
+    opacity: .75;
+  }
+  50% {
+    color: oklch(from var(--accent) l c h);
+    text-shadow: 0 0 10px oklch(from var(--accent) l c h / .45),
+                 0 0 20px oklch(from var(--accent) l c h / .18);
+    opacity: 1;
+  }
+}
+@keyframes live-vb-line-breathe {
+  0%, 100% { background: var(--ink); opacity: .35; }
+  50%       { background: oklch(from var(--accent) l c h); opacity: .55; }
+}
+body.live-active .vb h3 {
+  animation: live-vb-header-breathe 2.4s ease-in-out infinite;
+}
+body.live-active .vb h3::after {
+  animation: live-vb-line-breathe 2.4s ease-in-out infinite;
+}
+#right {
+  flex: 1; display: flex; flex-direction: column;
+  min-width: 0; background: var(--cream);
+}
+
+/* ── Resizers (between code/input and code/visualizer) ────────────── */
+.hres {
+  width: 5px; flex-shrink: 0; cursor: col-resize;
+  background: var(--ink);
+  transition: background .2s;
+  position: relative; z-index: 10;
+}
+.hres:hover, .hres.act { background: var(--accent); }
+.vres {
+  height: 3px; flex-shrink: 0; cursor: row-resize;
+  background: var(--ink);
+  transition: background .2s;
+}
+.vres:hover, .vres.act { background: var(--accent); }
+body.dh { user-select: none; cursor: col-resize; }
+body.dv { user-select: none; cursor: row-resize; }
+
+/* ── Panel section headers ("01 SOLUTION CODE", etc.) ─────────────── */
+.ch-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px; height: 32px;
+  background: #0d0d0d;
+  border-bottom: 1px solid #1f1f1f;
+  flex-shrink: 0;
+}
+.ch-num {
+  font-family: var(--mono); font-size: 8px; font-weight: 900;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--accent);
+  padding: 0;
+  opacity: .7;
+}
+.ch-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,.7); font-weight: 700;
+}
+.ch-sep { flex: 1; }
+.ch-info {
+  font-family: var(--mono); font-size: 9px; letter-spacing: .5px;
+  color: rgba(255,255,255,.28); text-transform: uppercase;
+}
+
+/* ── Code editor (CodeMirror) ─────────────────────────────────────── */
+#left-top { flex: 1; min-height: 80px; display: flex; flex-direction: column; overflow: hidden; }
+.edflex { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.CodeMirror {
+  font-family: var(--mono) !important;
+  font-size: 13px !important;
+  height: 100% !important;
+  background: #fdfcf8 !important;
+  color: #111 !important;
+}
+.CodeMirror-gutters { background: #ede9e0 !important; border-right: 1.5px solid var(--ink) !important; }
+.CodeMirror-linenumber { color: #aaa !important; }
+.CodeMirror-cursor { border-left: 2.5px solid var(--pink) !important; }
+.CodeMirror-selected { background: rgba(0,201,167,.22) !important; }
+.CodeMirror-linebackground.hl { background: rgba(0,201,167,.14) !important; }
+/* Indent guide spans — background color set directly by JS overlay */
+.cm-indent-guide { display: inline-block; }
+.cm-keyword  { color: var(--blue)   !important; font-weight: 700; }
+.cm-def      { color: #111          !important; font-weight: 700; }
+.cm-string   { color: var(--pink)   !important; }
+.cm-number   { color: #0a8a5e       !important; font-weight: 700; }
+.cm-comment  { color: #aaa          !important; font-style: italic; }
+.cm-operator { color: #444          !important; }
+.cm-variable { color: #111          !important; }
+.cm-builtin  { color: var(--purple) !important; }
+.cm-atom     { color: var(--blue)   !important; }
+
+/* ── Test input panel (lower-left) ────────────────────────────────── */
+#left-bot { display: flex; flex-direction: column; height: 185px; min-height: 60px; overflow: hidden; }
+#tinput {
+  flex: 1; resize: none; border: none; outline: none;
+  background: #fdfcf8; color: var(--text);
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+  padding: 10px 12px; min-height: 0;
+}
+#tinput::placeholder { color: #bbb; font-size: 11.5px; line-height: 1.8; }
+#badgerow { display: flex; align-items: center; gap: 6px; }
+#pbadge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 7px; font-weight: 900;
+  border: 1.5px solid var(--ink);
+  background: var(--white); color: var(--muted);
+}
+#pbadge.ok   { background: var(--green); color: var(--black); border-color: var(--ink); }
+#pbadge.warn { background: var(--accent); color: var(--black); border-color: var(--ink); }
+#tgl {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 1px;
+  text-transform: uppercase; cursor: pointer; color: var(--muted);
+  padding: 2px 6px; border: 2px solid transparent;
+  transition: all .12s; user-select: none; font-weight: 700;
+  background: transparent;
+}
+#tgl:hover { border-color: var(--ink); color: var(--text); background: var(--accent); }
+#genprev {
+  background: var(--cream); border-top: 1px solid var(--ink);
+  padding: 5px 12px; font-family: var(--mono); font-size: 10.5px;
+  color: var(--muted); line-height: 1.6; white-space: pre; overflow-x: auto;
+  max-height: 50px; overflow-y: auto; flex-shrink: 0;
+}
+#genprev.hidden { display: none; }
+
+/* ── Visualizer container (right pane) ────────────────────────────── */
+#viz { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+#errbanner {
+  display: none;
+  background: rgba(239,68,68,.06);
+  border: 1.5px solid var(--red);
+  border-left: 3px solid var(--red);
+  color: var(--red); padding: 10px 14px;
+  font-family: var(--mono); font-size: 11px; white-space: pre-wrap;
+  font-weight: 700;
+}
+#errbanner.show { display: block; }
+#errbanner::before { content: 'ERROR  '; font-weight: 900; font-size: 12px; }
+.empty { color: var(--gray); font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-align: center; padding: 36px 0; line-height: 2; }
+
+/* ── Bottom transport bar (RUN, step, play, speed) ───────────────── */
+#bottom {
+  height: 54px; flex-shrink: 0;
+  background: #080808;
+  border-top: 1px solid #1f1f1f;
+  display: flex; align-items: center;
+  padding: 0 18px; gap: 0;
+  position: relative; z-index: 20;
+}
+.bdiv { width: 1px; height: 22px; background: #242424; margin: 0 14px; flex-shrink: 0; }
+
+#run {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 0 20px;
+  height: 34px;
+  font-family: var(--mono); font-size: 11px; font-weight: 900;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity .12s, transform .08s;
+  flex-shrink: 0;
+}
+#run:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+#run:active:not(:disabled) { opacity: 1; transform: translateY(0); }
+#run:disabled { opacity: .25; cursor: not-allowed; }
+
+/* ── Live-mode toggle button ──────────────────────────────────────── */
+#live-btn {
+  background: transparent;
+  color: #555;
+  border: 1.5px solid #333;
+  padding: 0 14px;
+  height: 34px;
+  margin-left: 8px;
+  font-family: var(--mono); font-size: 11px; font-weight: 900;
+  letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; flex-shrink: 0;
+  transition: all .15s;
+  position: relative;
+}
+#live-btn:hover { border-color: var(--accent); color: var(--accent); }
+#live-btn.on {
+  border-color: var(--accent);
+  color: #000;
+  background: var(--accent);
+}
+/* Pulsing dot shown while a live re-run is pending (debounce countdown) */
+#live-btn.on.pending::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #000;
+  animation: live-pulse 0.7s ease-in-out infinite alternate;
+}
+@keyframes live-pulse {
+  from { opacity: 0.3; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.2); }
+}
+
+.tbtn {
+  width: 32px; height: 32px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #666; font-size: 12px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all .1s; flex-shrink: 0;
+  font-weight: 700;
+}
+.tbtn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: rgba(0,201,167,.07); }
+.tbtn:active:not(:disabled) { opacity: .7; }
+.tbtn:disabled { opacity: .2; cursor: not-allowed; }
+.tbtn.play {
+  background: var(--accent); color: #000;
+  border-color: var(--accent); font-size: 12px;
+  width: 34px; height: 34px;
+}
+.tbtn.play:hover:not(:disabled) { opacity: .88; background: var(--accent); }
+.tbtn.play.on { background: var(--pink); color: #fff; border-color: var(--pink); }
+.tbtn.play.on:hover:not(:disabled) { background: var(--pink); border-color: var(--pink); }
+#tgrp { display: flex; gap: 3px; }
+
+/* Progress block */
+#pblock { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 90px; }
+#pnum { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 1px; font-weight: 900; }
+#ptrack { width: 80px; height: 4px; background: #333; position: relative; }
+#pfill { height: 100%; width: 0%; background: var(--accent); transition: width .12s linear; }
+
+/* Speed slider */
+#sblock { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+#slabel { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #555; font-weight: 900; }
+input[type=range] {
+  -webkit-appearance: none; width: 80px; height: 3px;
+  background: #333; cursor: pointer; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px;
+  background: var(--accent); cursor: pointer;
+  border: 2px solid var(--ink);
+}
+#sval { font-family: var(--mono); font-size: 10px; color: var(--accent); min-width: 28px; font-weight: 900; }
+
+/* ── Initial loading screen (covers everything until Pyodide ready) ─ */
+#loading {
+  position: fixed; inset: 0;
+  background: #080808;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999; gap: 32px;
+}
+#loading.hidden { display: none; }
+.spin-ring {
+  width: 40px; height: 40px;
+  border: 2px solid #1f1f1f;
+  border-top-color: var(--accent);
+  animation: spin .65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; color: #444;
+  text-align: center; line-height: 2.4;
+}
+.load-label strong { display: block; color: var(--accent); font-size: 20px; letter-spacing: 8px; margin-bottom: 12px; font-weight: 900; }
