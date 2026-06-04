@@ -16,7 +16,7 @@ Perfect for **LeetCode practice, DSA learning, teaching, and debugging** tricky 
 
 ## Quick Start
 
-1. Visit **[trace.pages.dev](https://trace.pages.dev)**
+1. Visit **[trace-visualizer-5p0.pages.dev](https://trace-visualizer-5p0.pages.dev/)**
 2. Pick an example or paste your Python code
 3. Paste test input in LeetCode format: `nums = [1,2,3], target = 9`
 4. Click **RUN** (or **Cmd+Enter**)
