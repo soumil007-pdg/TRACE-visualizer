@@ -148,41 +148,6 @@ TRACE-visualizer/
 └── README.md               # This file
 ```
 
-## Configuration
-
-Edit **`js/config.js`** to add your own keys:
-
-```javascript
-window.TRACE_CONFIG = {
-  POSTHOG_KEY:  'phc_xxxxx',           // PostHog analytics (free)
-  POSTHOG_HOST: 'https://us.i.posthog.com',
-  SENTRY_DSN:   'https://...',         // Optional error tracking
-  SITE_URL:     'https://trace.dev',   // Your domain
-};
-```
-
-Leave them empty (`''`) to disable analytics.
-
-## Deployment
-
-### To Cloudflare Pages (recommended)
-
-1. Create empty GitHub repo
-2. Push your code: `git push -u origin main`
-3. In Cloudflare dashboard → **Workers & Pages** → **Create application** → **Pages** tab
-4. Choose **"Connect to Git"** → select this repo
-5. Build command: (leave blank)
-6. Build output: `.`
-7. Click **"Save and Deploy"**
-
-Your site lives at **`[repo-name].pages.dev`** and auto-deploys on every push.
-
-To use a custom domain later, add it in **Cloudflare → Domains** (or via CNAME).
-
-## License
-
-MIT — use freely, modify, share.
-
 ## Questions?
 
 - 🐞 Found a bug? Click the **🐞** button in the app to report it
