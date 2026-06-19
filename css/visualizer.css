@@ -29,11 +29,8 @@
   align-content: start;
 }
 
-/* Full-row text-strip / placeholder panels (variables chips, statement,
-   condition, empty-state) — these are horizontal strips, not square
-   cards, so they look right spanning the entire row. */
-#vc > .stmt-panel,
-#vc > .cond-panel,
+/* Full-row text-strip / placeholder panels — these are horizontal strips,
+   not square cards, so they look right spanning the entire row. */
 #vc > .empty,
 #vc > .vb:has(> .chips) { grid-column: 1 / -1; }
 
@@ -346,6 +343,28 @@ svg.tree   { display: block; }
   transition: opacity .15s, background .15s;
 }
 .view-tgl:hover { opacity: 1; background: var(--ink); color: var(--bg); }
+
+/* ── Dict-of-lists (adjacency list) visualization ─────────────────── */
+.nl-grid { display: flex; flex-direction: column; gap: 4px; font-family: var(--mono); }
+.nl-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px; border-radius: 4px;
+  transition: background .15s;
+}
+.nl-row.nl-ch { background: rgba(0,201,167,.1); }
+.nl-key {
+  font-size: 13px; font-weight: 900; color: var(--accent);
+  min-width: 28px; text-align: right; flex-shrink: 0;
+}
+.nl-arrow { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.nl-vals { display: flex; flex-wrap: wrap; gap: 4px; }
+.nl-pill {
+  font-size: 12px; font-weight: 700; padding: 2px 8px;
+  border: 1.5px solid var(--ink); background: var(--white);
+  color: var(--text); border-radius: 3px;
+}
+.nl-pill.nl-new { background: var(--accent); color: var(--black); border-color: var(--accent); }
+.nl-empty { font-size: 11px; color: var(--gray); }
 
 /* ══════════════════════════════════════════════════════════════════════
    3D CALL STACK  (.cs3-*)  — deck-of-cards, active frame at front

@@ -332,29 +332,22 @@ function render(){
     }
   }
 
-  const out = [];
-
-  // ── 1. Statement panel — "compute x = y+1 → 4" ── VERY TOP
-  //    Tells you instantly what the current line is doing / computed.
+  // ── Sticky exec header — always visible at top while scrolling ──
+  const execParts = [];
   const sp = rStmtPanel(s.stmt);
-  if(sp) out.push(sp);
-
-  // ── 2. Condition panel — "IF x < y → FALSE" ── just below stmt
-  //    Shows branch outcome so you always see it without scrolling.
+  if(sp) execParts.push(sp);
   const cp = rCondPanel(s.cond);
-  if(cp) out.push(cp);
-
-  // ── 2b. Fallback exec panel ───────────────────────────────────────────
-  //    Many lines produce neither stmt nor cond (function-call assignments,
-  //    return statements with method calls, etc.).  Always show at least
-  //    the raw source line so the user is never left wondering what's running.
+  if(cp) execParts.push(cp);
   if(!sp && !cp && s.filename === '<user>' && s.line){
     const rawLine = (window._cm ? window._cm.getLine(s.line - 1) : '') || '';
     const trimmed = rawLine.trim();
     if(trimmed){
-      out.push(`<div class="cond-panel cond-exec"><span class="cond-kw">line&nbsp;${s.line}</span><span class="cond-expr">${esc(trimmed)}</span></div>`);
+      execParts.push(`<div class="cond-panel cond-exec"><span class="cond-kw">line&nbsp;${s.line}</span><span class="cond-expr">${esc(trimmed)}</span></div>`);
     }
   }
+  document.getElementById('exec-head').innerHTML = execParts.join('');
+
+  const out = [];
 
   // ── 3. Variables — chip strip or history trail ───────────────────────
   //    For scalar-only problems (DP, counters, math) every variable shows

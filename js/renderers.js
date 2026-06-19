@@ -329,7 +329,29 @@ function rNestedTree(name, val, depth=0, maxDepth=8){
   return `<details open><summary style="color:var(--accent);cursor:pointer;user-select:none;">{{ ${keys.length} keys }}</summary><div style="margin-left:8px;">${items}</div></details>`;
 }
 
+function _isDictOfLists(val){
+  if(Array.isArray(val) || typeof val !== 'object' || val === null) return false;
+  const keys = Object.keys(val);
+  if(keys.length === 0) return false;
+  return keys.every(k => Array.isArray(val[k]) && val[k].every(v => v === null || typeof v !== 'object'));
+}
+
+function _rDictOfLists(name, val, pVal){
+  const pObj = (pVal && typeof pVal === 'object' && !Array.isArray(pVal)) ? pVal : {};
+  const rows = Object.entries(val).map(([k, arr]) => {
+    const pArr = pObj[k] || [];
+    const pills = arr.map((v, i) => {
+      const isNew = i >= pArr.length || pArr[i] !== v;
+      return `<span class="nl-pill${isNew ? ' nl-new' : ''}">${esc(fv(v))}</span>`;
+    }).join('');
+    const keyChanged = !pObj[k] || JSON.stringify(pObj[k]) !== JSON.stringify(arr);
+    return `<div class="nl-row${keyChanged ? ' nl-ch' : ''}"><span class="nl-key">${esc(k)}</span><span class="nl-arrow">→</span><div class="nl-vals">${pills || '<span class="nl-empty">[ ]</span>'}</div></div>`;
+  }).join('');
+  return `<div class="vb"><h3>Adjacency&nbsp;&nbsp;${esc(name)}</h3><div class="nl-grid">${rows}</div></div>`;
+}
+
 function rNested(name, val, pVal){
+  if(_isDictOfLists(val)) return _rDictOfLists(name, val, pVal);
   const changed = !pVal || JSON.stringify(pVal) !== JSON.stringify(val);
   const bg = changed ? 'background:rgba(0,201,167,.08);' : '';
   const tree = rNestedTree(name, val, 0, 8);
