@@ -195,7 +195,7 @@ function parseLCI(raw){
     // Handle "key: value" (colon-style, only at line start, only before obvious value)
     t = t.replace(/^([a-zA-Z_]\w*)\s*:\s*(?=[\[{\d"'\-])/, '$1 = ');
     for(let seg of splitTopLevel(t)){
-      seg = seg.trim().replace(/^([a-zA-Z_]\w*)\[\]/,'$1');
+      seg = seg.trim().replace(/^([a-zA-Z_]\w*?)(\[\])+/,'$1');
       const eq = seg.indexOf('=');
       if(eq>0){
         const lhs=seg.slice(0,eq).trim();
