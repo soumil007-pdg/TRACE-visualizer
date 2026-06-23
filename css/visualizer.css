@@ -493,6 +493,212 @@ svg.tree   { display: block; }
 .cx-total-sep { color: var(--gray); opacity: 0.4; font-size: 16px; }
 
 /* ══════════════════════════════════════════════════════════════════════
+   ONBOARDING GUIDE — animated 6-step carousel for new users
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Pulse ring on the 🎯 button to attract first-timers */
+@keyframes ob-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(0,201,167,0.7); }
+  70%  { box-shadow: 0 0 0 8px rgba(0,201,167,0); }
+  100% { box-shadow: 0 0 0 0 rgba(0,201,167,0); }
+}
+#btn-onboard.ob-pulse { animation: ob-ring 2s ease-out 3; }
+
+/* Modal shell */
+.ob-modal {
+  max-width: 560px; width: 94vw; padding: 0; overflow: hidden;
+  border: 1.5px solid var(--ink); border-radius: 14px;
+}
+
+/* Header strip */
+.ob-header {
+  display: flex; align-items: center; gap: 14px; padding: 18px 22px 16px;
+  background: var(--accent); position: relative;
+}
+.ob-logo {
+  width: 36px; height: 36px; border-radius: 7px; background: rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 16px; color: #fff; flex-shrink: 0;
+  font-family: var(--mono);
+}
+.ob-header-text { flex: 1; }
+.ob-title { font-size: 17px; font-weight: 800; color: #0a0a0a; line-height: 1.15; }
+.ob-sub   { font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.55); margin-top: 2px; letter-spacing: .04em; }
+.ob-header .modal-close {
+  position: static; background: rgba(0,0,0,0.15); border: none;
+  color: #0a0a0a; width: 28px; height: 28px; border-radius: 50%;
+  cursor: pointer; font-size: 15px; line-height: 1; flex-shrink: 0;
+  transition: background .15s;
+}
+.ob-header .modal-close:hover { background: rgba(0,0,0,0.3); }
+
+/* Body / step area */
+.ob-body {
+  padding: 28px 28px 20px; background: var(--cream);
+  min-height: 370px; position: relative;
+  display: flex; flex-direction: column;
+}
+
+/* Steps — slide in/out */
+.ob-step {
+  display: none; flex-direction: column;
+  animation: ob-slide-in 0.35s cubic-bezier(0.16,1,0.3,1);
+  flex: 1;
+}
+.ob-step.active { display: flex; }
+.ob-step.ob-exit-left  { animation: ob-slide-out-left  0.25s ease forwards; }
+.ob-step.ob-exit-right { animation: ob-slide-out-right 0.25s ease forwards; }
+
+@keyframes ob-slide-in       { from { opacity:0; transform:translateX(32px); } to { opacity:1; transform:translateX(0); } }
+@keyframes ob-slide-in-left  { from { opacity:0; transform:translateX(-32px); } to { opacity:1; transform:translateX(0); } }
+@keyframes ob-slide-out-left { to   { opacity:0; transform:translateX(-28px); } }
+@keyframes ob-slide-out-right{ to   { opacity:0; transform:translateX(28px); } }
+
+.ob-step-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+.ob-step-title {
+  font-size: 20px; font-weight: 800; color: var(--text);
+  margin: 0 0 8px; line-height: 1.2;
+}
+.ob-step-desc {
+  font-size: 13px; line-height: 1.6; color: var(--muted);
+  margin: 0 0 12px;
+}
+.ob-step-desc strong { color: var(--text); font-weight: 700; }
+
+/* Hint callout */
+.ob-hint {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-left: 3px solid var(--accent);
+  font-size: 12px; color: var(--muted); line-height: 1.45;
+}
+.ob-hint-accent { border-left-color: var(--blue); background: color-mix(in srgb, var(--blue) 8%, transparent); }
+.ob-hint-arrow  { color: var(--accent); font-weight: 900; flex-shrink: 0; }
+.ob-hint code {
+  background: var(--ink); color: var(--accent); padding: 1px 5px;
+  border-radius: 3px; font-family: var(--mono); font-size: 11px;
+}
+
+/* Mini preview images (mockup cards inside each step) */
+.ob-step-img {
+  margin-top: auto; border-radius: 8px; overflow: hidden;
+  background: var(--white); border: 1.5px solid var(--ink);
+  padding: 14px; font-family: var(--mono);
+}
+
+/* Step 1 — code mock */
+.ob-code-mock { display: flex; flex-direction: column; gap: 3px; font-size: 11px; }
+.ob-line { color: var(--muted); white-space: pre; }
+.ob-kw { color: #c084fc; }
+.ob-indent  { padding-left: 14px; }
+.ob-indent2 { padding-left: 28px; }
+.ob-hi { color: var(--accent) !important; background: rgba(0,201,167,.1); border-radius: 3px; padding: 0 4px; }
+
+/* Step 2 — input mock */
+.ob-input-mock { font-size: 11px; }
+.ob-input-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; }
+.ob-input-val { color: var(--text); font-size: 12px; margin-bottom: 8px; }
+.ob-parsed-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  background: var(--accent); color: #0a0a0a; font-size: 9px; font-weight: 800; letter-spacing: 1px;
+}
+
+/* Step 3 — run mock */
+.ob-run-mock { display: flex; flex-direction: column; gap: 10px; }
+.ob-run-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px;
+  background: var(--accent); color: #0a0a0a; font-weight: 800; font-size: 12px;
+  border-radius: 6px; width: fit-content;
+}
+.ob-run-line { height: 2px; background: linear-gradient(90deg, var(--accent) 33%, var(--ink) 33%); border-radius: 2px; }
+.ob-run-box { display: flex; flex-direction: column; gap: 4px; font-size: 11px; }
+.ob-run-row { display: flex; gap: 10px; align-items: center; padding: 3px 0; }
+.ob-run-row.ob-changed { color: var(--accent); }
+.ob-var { color: var(--muted); min-width: 60px; }
+.ob-val { color: var(--text); font-weight: 600; }
+.ob-run-row.ob-changed .ob-var, .ob-run-row.ob-changed .ob-val { color: var(--accent); }
+
+/* Step 4 — stepper mock */
+.ob-stepper-mock { display: flex; flex-direction: column; gap: 10px; }
+.ob-step-btns { display: flex; gap: 8px; }
+.ob-sbtn {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--ink);
+  display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted);
+}
+.ob-sbtn-play { background: var(--accent); color: #0a0a0a; font-weight: 800; }
+.ob-step-counter { font-size: 11px; color: var(--muted); }
+.ob-progress-bar { height: 4px; background: var(--ink); border-radius: 2px; overflow: hidden; }
+.ob-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+
+/* Step 5 — tree mock */
+.ob-tree-mock { display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 12px; }
+.ob-tree-node {
+  width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; color: var(--text); background: var(--white);
+}
+.ob-tree-node.ob-empty { border-color: transparent; background: transparent; }
+.ob-tree-node.ob-root { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
+.ob-tree-row  { display: flex; gap: 20px; }
+.ob-tree-row3 { gap: 12px; }
+
+/* Step 6 — complexity mock */
+.ob-cx-mock { display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
+.ob-cx-line { display: flex; align-items: center; gap: 8px; }
+.ob-cx-badge { padding: 1px 7px; border-radius: 5px; font-weight: 900; font-size: 11px; flex-shrink: 0; }
+.ob-cx-t { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+.ob-cx-s { background: color-mix(in srgb, var(--blue) 18%, transparent); color: var(--blue); }
+.ob-cx-why { color: var(--muted); }
+.ob-cx-total {
+  margin-top: 8px; padding: 7px 12px; border: 1.5px solid var(--accent); border-radius: 7px;
+  font-weight: 800; color: var(--accent); font-size: 11px; letter-spacing: .03em;
+}
+
+/* Navigation */
+.ob-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--ink);
+}
+.ob-nav-prev, .ob-nav-next {
+  padding: 7px 16px; border-radius: 7px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .18s; border: 1.5px solid var(--accent);
+  background: none; color: var(--accent);
+}
+.ob-nav-prev:hover:not(:disabled), .ob-nav-next:hover:not(:disabled) {
+  background: var(--accent); color: #0a0a0a;
+}
+.ob-nav-prev:disabled { opacity: 0.3; cursor: not-allowed; }
+.ob-nav-next.ob-finish { background: var(--accent); color: #0a0a0a; }
+.ob-nav-next.ob-finish:hover { opacity: .85; }
+
+/* Dot nav */
+.ob-dots { display: flex; gap: 7px; align-items: center; }
+.ob-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--ink);
+  cursor: pointer; transition: all .2s;
+}
+.ob-dot.active { background: var(--accent); transform: scale(1.4); }
+.ob-dot:hover:not(.active) { background: var(--muted); }
+
+/* Footer row */
+.ob-footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.ob-skip {
+  background: none; border: none; color: var(--muted); font-size: 11px;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  transition: color .15s;
+}
+.ob-skip:hover { color: var(--text); }
+.ob-step-count { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+/* kbd override inside ob-step */
+.ob-step kbd {
+  display: inline-block; background: var(--ink); color: var(--text);
+  padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: var(--mono);
+  border: 1px solid var(--gray);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    3D CALL STACK  (.cs3-*)  — deck-of-cards, active frame at front
    ══════════════════════════════════════════════════════════════════════ */
 .cs3-panel { border-left: 3px solid var(--blue); }

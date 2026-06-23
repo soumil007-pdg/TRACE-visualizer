@@ -63,10 +63,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
 
 <!-- App stylesheets (load order matters: base → visualizer → themes → pro) -->
-<link rel="stylesheet" href="css/base.css?v=98"/>
-<link rel="stylesheet" href="css/visualizer.css?v=98"/>
-<link rel="stylesheet" href="css/themes.css?v=98"/>
-<link rel="stylesheet" href="css/pro.css?v=98"/>
+<link rel="stylesheet" href="css/base.css?v=99"/>
+<link rel="stylesheet" href="css/visualizer.css?v=99"/>
+<link rel="stylesheet" href="css/themes.css?v=99"/>
+<link rel="stylesheet" href="css/pro.css?v=99"/>
 
 <!-- Inline: apply saved theme before first paint to prevent flash -->
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
@@ -137,6 +137,9 @@
   </button>
   <button class="hbtn" id="btn-help" title="Show keyboard shortcuts and help">
     <span>?</span>
+  </button>
+  <button class="hbtn ob-pulse" id="btn-onboard" title="New here? Quick start guide (2 min)">
+    <span>🎯</span>
   </button>
 
   <button id="mobile-menu-btn" title="Menu">☰</button>
@@ -218,6 +221,163 @@
         <li>If execution hangs, the runtime caps at 1000 steps to protect against infinite loops.</li>
       </ul>
     </div>
+  </div>
+</div>
+
+<!-- ── Onboarding Guide Modal ───────────────────────────────────────── -->
+<div class="modal-backdrop" id="onboard-modal">
+  <div class="modal ob-modal">
+    <div class="ob-header">
+      <div class="ob-logo">Tr</div>
+      <div class="ob-header-text">
+        <div class="ob-title">Welcome to TRACE</div>
+        <div class="ob-sub">Your Python algorithm visualizer</div>
+      </div>
+      <button class="modal-close" data-close="onboard-modal">×</button>
+    </div>
+
+    <!-- Step panels -->
+    <div class="ob-body">
+
+      <div class="ob-step active" data-step="1">
+        <div class="ob-step-icon">✍️</div>
+        <h3 class="ob-step-title">Write or pick your code</h3>
+        <p class="ob-step-desc">Paste any Python algorithm in the left panel, or pick a ready-made example from the <strong>Algorithm dropdown</strong> in the header.</p>
+        <div class="ob-hint">
+          <span class="ob-hint-arrow">↑</span>
+          Use the <strong>Array · Binary Search</strong> dropdown in the header to load built-in examples instantly.
+        </div>
+        <div class="ob-step-img ob-img-1">
+          <div class="ob-code-mock">
+            <span class="ob-line ob-kw">class</span><span class="ob-line"> Solution:</span>
+            <span class="ob-line ob-indent ob-kw">  def</span><span class="ob-line"> twoSum(self, nums, target):</span>
+            <span class="ob-line ob-indent2 ob-hi">    seen = {}</span>
+            <span class="ob-line ob-indent2">    for num in nums:</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="2">
+        <div class="ob-step-icon">📥</div>
+        <h3 class="ob-step-title">Add your test input</h3>
+        <p class="ob-step-desc">Type your test case in the <strong>TEST INPUT</strong> box at the bottom-left. LeetCode format works directly — just paste it in.</p>
+        <div class="ob-hint">
+          <span class="ob-hint-arrow">↓</span>
+          Example: <code>nums = [2,7,11,15], target = 9</code>. Your input auto-saves every time.
+        </div>
+        <div class="ob-step-img ob-img-2">
+          <div class="ob-input-mock">
+            <div class="ob-input-label">02 &nbsp;TEST INPUT</div>
+            <div class="ob-input-val">nums = [2,7,11,15], target = 9</div>
+            <div class="ob-parsed-badge">✓ PARSED</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="3">
+        <div class="ob-step-icon">▶️</div>
+        <h3 class="ob-step-title">Hit RUN — watch it come alive</h3>
+        <p class="ob-step-desc">Click <strong>RUN</strong> (or press <kbd>⌘/Ctrl + Enter</kbd>). Your code executes line-by-line inside your browser — no server, no install.</p>
+        <div class="ob-hint">
+          <span class="ob-hint-arrow">↓</span>
+          The right panel fills with your variables, arrays, trees, and graphs — all live.
+        </div>
+        <div class="ob-step-img ob-img-3">
+          <div class="ob-run-mock">
+            <div class="ob-run-btn">▶ RUN</div>
+            <div class="ob-run-line"></div>
+            <div class="ob-run-box">
+              <div class="ob-run-row"><span class="ob-var">nums</span><span class="ob-val">[2, 7, 11, 15]</span></div>
+              <div class="ob-run-row"><span class="ob-var">target</span><span class="ob-val">9</span></div>
+              <div class="ob-run-row ob-changed"><span class="ob-var">seen</span><span class="ob-val">{2: 0}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="4">
+        <div class="ob-step-icon">⏩</div>
+        <h3 class="ob-step-title">Step through every line</h3>
+        <p class="ob-step-desc">Use the <strong>← →</strong> arrows (or keyboard arrow keys) to move one step at a time. Watch exactly which variable changes at each line.</p>
+        <div class="ob-hint">
+          <span class="ob-hint-arrow">↓</span>
+          Green highlights = something just changed. Press <kbd>Space</kbd> to auto-play.
+        </div>
+        <div class="ob-step-img ob-img-4">
+          <div class="ob-stepper-mock">
+            <div class="ob-step-btns">
+              <div class="ob-sbtn">◀</div>
+              <div class="ob-sbtn ob-sbtn-play">▶</div>
+              <div class="ob-sbtn">▶</div>
+            </div>
+            <div class="ob-step-counter">Step 4 / 12</div>
+            <div class="ob-progress-bar"><div class="ob-progress-fill" style="width:33%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="5">
+        <div class="ob-step-icon">🌳</div>
+        <h3 class="ob-step-title">Visualize any data structure</h3>
+        <p class="ob-step-desc">Arrays, linked lists, binary trees, heaps, grids, graphs — all rendered as visual shapes. Recursion auto-builds a call-tree.</p>
+        <div class="ob-hint">
+          <span class="ob-hint-arrow">↑</span>
+          Try "Binary Tree · Max Depth" or "Heap · K Closest Points" from the dropdown!
+        </div>
+        <div class="ob-step-img ob-img-5">
+          <div class="ob-tree-mock">
+            <div class="ob-tree-node ob-root">3</div>
+            <div class="ob-tree-row">
+              <div class="ob-tree-node">9</div>
+              <div class="ob-tree-node">20</div>
+            </div>
+            <div class="ob-tree-row ob-tree-row3">
+              <div class="ob-tree-node ob-empty"></div>
+              <div class="ob-tree-node ob-empty"></div>
+              <div class="ob-tree-node">15</div>
+              <div class="ob-tree-node">7</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ob-step" data-step="6">
+        <div class="ob-step-icon">📊</div>
+        <h3 class="ob-step-title">Analyze time &amp; space complexity</h3>
+        <p class="ob-step-desc">After running, click the <strong>O(n) button</strong> in the bottom bar. Every line gets a complexity badge with a plain-English reason why.</p>
+        <div class="ob-hint ob-hint-accent">
+          <span class="ob-hint-arrow">↓</span>
+          <span>Perfect for interview prep — understand <em>why</em> your algorithm is O(n) or O(n²).</span>
+        </div>
+        <div class="ob-step-img ob-img-6">
+          <div class="ob-cx-mock">
+            <div class="ob-cx-line"><span class="ob-cx-badge ob-cx-t">O(n)</span><span class="ob-cx-why">two pointers converge — each element once</span></div>
+            <div class="ob-cx-line"><span class="ob-cx-badge ob-cx-t">O(1)</span><span class="ob-cx-why">array access — constant time</span></div>
+            <div class="ob-cx-line"><span class="ob-cx-badge ob-cx-s">O(1)</span><span class="ob-cx-why">in-place swap — no auxiliary array</span></div>
+            <div class="ob-cx-total">TOTAL → TIME O(n) &nbsp;|&nbsp; SPACE O(1)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav controls -->
+      <div class="ob-nav">
+        <button class="ob-nav-prev" id="ob-prev" disabled>← Back</button>
+        <div class="ob-dots" id="ob-dots">
+          <span class="ob-dot active" data-step="1"></span>
+          <span class="ob-dot" data-step="2"></span>
+          <span class="ob-dot" data-step="3"></span>
+          <span class="ob-dot" data-step="4"></span>
+          <span class="ob-dot" data-step="5"></span>
+          <span class="ob-dot" data-step="6"></span>
+        </div>
+        <button class="ob-nav-next" id="ob-next">Next →</button>
+      </div>
+      <div class="ob-footer-row">
+        <button class="ob-skip" id="ob-skip">Skip tour</button>
+        <span class="ob-step-count" id="ob-step-count">Step 1 of 6</span>
+      </div>
+
+    </div><!-- /.ob-body -->
   </div>
 </div>
 
@@ -381,28 +541,29 @@ or:  nums = [2,7,11,15]
      Config + analytics (load before app so keys/tracking are ready).
      Edit js/config.js to plug in your PostHog / Sentry keys.
      ══════════════════════════════════════════════════════════════════ -->
-<script src="js/config.js?v=98"></script>      <!-- TRACE_CONFIG (keys)                  -->
-<script src="js/analytics.js?v=98"></script>   <!-- PostHog, Sentry, bug reports         -->
+<script src="js/config.js?v=99"></script>      <!-- TRACE_CONFIG (keys)                  -->
+<script src="js/analytics.js?v=99"></script>   <!-- PostHog, Sentry, bug reports         -->
 
 <!-- ══════════════════════════════════════════════════════════════════
      Application modules — load order is significant (no bundler/ESM).
      Each file appends globals to window scope; later scripts can call
      functions from earlier scripts freely.
      ══════════════════════════════════════════════════════════════════ -->
-<script src="js/utils.js?v=98"></script>       <!-- esc, fv                              -->
-<script src="js/storage.js?v=98"></script>     <!-- Store, Toast                         -->
-<script src="js/tracer.js?v=98"></script>      <!-- TRACER (Python string)               -->
-<script src="js/templates.js?v=98"></script>   <!-- TMPL                                 -->
-<script src="js/parser.js?v=98"></script>      <!-- buildDriver + helpers                -->
-<script src="js/renderers.js?v=98"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
-<script src="js/renderers-recursion.js?v=98"></script> <!-- rRecursionPanels (call stack + tree) -->
-<script src="js/complexity.js?v=98"></script>          <!-- Time/space complexity analysis     -->
-<script src="js/render-core.js?v=98"></script>         <!-- snaps/cur/prev state, render()    -->
-<script src="js/runner.js?v=98"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
-<script src="js/controls.js?v=98"></script>    <!-- cm, tiEl, transport buttons, theme   -->
-<script src="js/pro-ui.js?v=98"></script>      <!-- snippets, modals, share, mobile      -->
-<script src="js/shortcuts.js?v=98"></script>   <!-- keyboard shortcuts                   -->
-<script src="js/app.js?v=98"></script>         <!-- restoreState + initPyodide kickoff   -->
+<script src="js/utils.js?v=99"></script>       <!-- esc, fv                              -->
+<script src="js/storage.js?v=99"></script>     <!-- Store, Toast                         -->
+<script src="js/tracer.js?v=99"></script>      <!-- TRACER (Python string)               -->
+<script src="js/templates.js?v=99"></script>   <!-- TMPL                                 -->
+<script src="js/parser.js?v=99"></script>      <!-- buildDriver + helpers                -->
+<script src="js/renderers.js?v=99"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
+<script src="js/renderers-recursion.js?v=99"></script> <!-- rRecursionPanels (call stack + tree) -->
+<script src="js/complexity.js?v=99"></script>          <!-- Time/space complexity analysis     -->
+<script src="js/render-core.js?v=99"></script>         <!-- snaps/cur/prev state, render()    -->
+<script src="js/runner.js?v=99"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
+<script src="js/controls.js?v=99"></script>    <!-- cm, tiEl, transport buttons, theme   -->
+<script src="js/pro-ui.js?v=99"></script>      <!-- snippets, modals, share, mobile      -->
+<script src="js/onboard.js?v=99"></script>     <!-- new-user onboarding guide            -->
+<script src="js/shortcuts.js?v=99"></script>   <!-- keyboard shortcuts                   -->
+<script src="js/app.js?v=99"></script>         <!-- restoreState + initPyodide kickoff   -->
 
 </body>
 </html>
