@@ -12,6 +12,7 @@
   let _cxData = null;     // empirical result: { points, fit, n0, kind, ... }
   let _cxSnaps = null;    // snaps reference for the live op counter
   let _cxToken = 0;       // guards against stale async measurements
+  let _cxTotalEl = null;  // TOTAL COMPLEXITY footer (rebuilt after fit)
 
   /* ══════════════════════════════════════════════════════════════════
      EMPIRICAL ENGINE — measure operation growth across input sizes,
@@ -383,6 +384,7 @@
       cm.removeLineClass(i, 'wrap', 'cx-hi-line');
       cm.removeLineClass(i, 'wrap', 'cx-hi-hot');
     }
+    _cxTotalEl = null;
     _cxActive = false;
   }
 
@@ -396,22 +398,6 @@
     const result = analyzeComplexity(snaps, code);
     if(!result) return;
     _cxActive = true;
-
-    function tLevel(c){
-      if(c === 'O(1)') return 'cx-t1';
-      if(c === 'O(log n)') return 'cx-t2';
-      if(c === 'O(n)') return 'cx-t3';
-      if(c === 'O(n log n)') return 'cx-t3';
-      if(c === 'O(n²)') return 'cx-t4';
-      return 'cx-t5';
-    }
-    function sLevel(c){
-      if(c === 'O(1)') return 'cx-s1';
-      if(c === 'O(log n)') return 'cx-s2';
-      if(c === 'O(n)') return 'cx-s3';
-      if(c === 'O(n²)') return 'cx-s4';
-      return 'cx-s5';
-    }
 
     function _inlineTag(lineNum, html){
       const el = document.createElement('span');
@@ -449,42 +435,47 @@
         totalSteps: result.totalSteps,
       };
       _renderBanner(summaryEl, result, _cxData);
+      if(_cxTotalEl) _renderTotal(_cxTotalEl, result, _cxData);
       if(typeof render === 'function') render();   // surface the growth panel
     }).catch(() => {});
 
-    // ── Time: inline tags on loop lines ──
+    // ── Build per-line reasoning, then render reference-style callouts ──
+    const codeLines = code.split('\n');
+    const ann = {};                              // 0-based line -> { kind, cx, why }
+    const place = (ln, a) => { if(ln >= 0 && !(ln in ann)) ann[ln] = a; };
+
+    // 1. Loops → TIME reasoning (+ highlight the loop body)
+    let firstLoopLine = Infinity;
     for(const block of result.blocks){
+      firstLoopLine = Math.min(firstLoopLine, block.startLine);
       for(let i = block.startLine; i <= block.endLine; i++){
         cm.addLineClass(i, 'wrap', 'cx-hi-line');
         if(_cmpOrder(block.combined) >= _cmpOrder('O(n²)')) cm.addLineClass(i, 'wrap', 'cx-hi-hot');
       }
-
       const cx = block.parent !== null ? block.combined : block.own;
-      let detail = '';
+      const src = (codeLines[block.startLine] || '').trim();
+      let why;
       if(block.parent !== null){
-        detail = `<span class="cx-itag-why">${block.explain}</span>`;
+        why = `nested loop · ${block.explain}`;
       } else {
-        detail = `<span class="cx-itag-why">${block.hits}×</span>`;
+        const tp = /^while\s*\(?\s*([a-z]\w*)\s*[<>]=?\s*([a-z]\w*)/i.exec(src);
+        const conv = tp && new RegExp(`\\b(${tp[1]}|${tp[2]})\\s*[+\\-]=`).test(code);
+        if(conv) why = `two pointers converge — each element processed once (≤ ${block.hits} steps)`;
+        else     why = `loop body runs ${block.hits}× ≈ ${cx}`;
       }
-      _inlineTag(block.startLine,
-        `<span class="cx-itag-time ${tLevel(cx)}">${cx}</span>${detail}`);
+      place(block.startLine, { kind:'time', cx, why });
     }
 
-    // ── Space: inline tags on container declaration lines ──
-    const codeLines = code.split('\n');
+    // 2. Auxiliary space / recursion → SPACE reasoning on the creating line
     const spaceAnnotated = new Set();
     for(const sp of result.spaceItems){
       if(sp.name === 'call stack'){
-        // Find the recursive function def (the one that calls itself)
         for(let i = 0; i < codeLines.length; i++){
           const m = codeLines[i].match(/^\s*def\s+(\w+)/);
           if(m && !spaceAnnotated.has(i)){
             const fnName = m[1];
-            const bodyAfter = codeLines.slice(i+1).join('\n');
-            if(bodyAfter.includes(fnName + '(')){
-              _inlineTag(i,
-                `<span class="cx-itag-space ${sLevel(sp.complexity)}">${sp.complexity} stack</span>` +
-                `<span class="cx-itag-why">depth ${sp.maxSize}</span>`);
+            if(codeLines.slice(i+1).join('\n').includes(fnName + '(')){
+              place(i, { kind:'space', cx:sp.complexity, why:`recursion stack — max call depth ${sp.maxSize}` });
               spaceAnnotated.add(i);
               break;
             }
@@ -492,23 +483,76 @@
         }
         continue;
       }
-      // Mark on the exact line where the variable is assigned/created
-      const sizeNote = sp.maxSize >= result.n * 0.5 ? `~n (${sp.maxSize})` : `${sp.maxSize}`;
-      const label = sp.isInput ? `${sp.complexity} input` : `${sp.complexity} space`;
       const esc = sp.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
       for(let i = 0; i < codeLines.length; i++){
-        const re = new RegExp('\\b' + esc + '\\s*=');
-        if(re.test(codeLines[i]) && !spaceAnnotated.has(i)){
-          _inlineTag(i,
-            `<span class="cx-itag-space ${sLevel(sp.complexity)}${sp.isInput ? ' cx-itag-input' : ''}">${label}</span>` +
-            `<span class="cx-itag-why">${sp.name}: ${sizeNote}</span>`);
+        if(new RegExp('\\b' + esc + '\\s*=').test(codeLines[i]) && !spaceAnnotated.has(i)){
+          const note = sp.maxSize >= result.n * 0.5 ? `grows with input (≈${sp.maxSize})` : `holds ${sp.maxSize}`;
+          place(i, { kind:'space', cx:sp.complexity,
+                     why: sp.isInput ? `input · ${sp.name} ${note}` : `allocates ${sp.name} — ${note}` });
           spaceAnnotated.add(i);
           break;
         }
       }
     }
 
+    // 3. Per-statement micro-reasons: in-place swaps, array reads, scalar inits
+    for(const lnStr of Object.keys(result.lineHits)){
+      const ln0 = (+lnStr) - 1;
+      if(ln0 in ann) continue;
+      const src = (codeLines[ln0] || '').trim();
+      if(!src || src.startsWith('#')) continue;
+      // tuple swap with subscripts both sides → in-place, O(1) space
+      if(/\w+\s*\[[^\]]*\]\s*,\s*\w+\s*\[[^\]]*\]\s*=\s*\w+\s*\[[^\]]*\]\s*,/.test(src)){
+        place(ln0, { kind:'space', cx:'O(1)', why:'in-place swap — no auxiliary array' });
+        continue;
+      }
+      if(/^(def |class |return\b|if |elif |else|for |while )/.test(src)) continue;
+      // x = arr[i]  → O(1) array access (read)
+      if(/^[a-z_]\w*\s*=\s*[a-z_]\w*\s*\[[^\]]*\]\s*$/i.test(src)){
+        place(ln0, { kind:'time', cx:'O(1)', why:'array access — constant time' });
+        continue;
+      }
+      // scalar init before the first loop:  l = 0  /  r = len(arr) - 1
+      if(ln0 < firstLoopLine && /^[a-z_]\w*\s*=\s*[^=]/i.test(src) && !/[\[\{]/.test((src.split('=')[1] || ''))){
+        place(ln0, { kind:'time', cx:'O(1)', why:'allocation — constant time & space' });
+        continue;
+      }
+    }
+
+    // 4. Render callout cards
+    for(const lnStr of Object.keys(ann)){
+      const a = ann[lnStr];
+      const hot = _cmpOrder(a.cx) >= _cmpOrder('O(n²)');
+      _inlineTag(+lnStr,
+        `<span class="cx-co cx-co-${a.kind}${hot ? ' cx-co-hot' : ''}">` +
+          `<span class="cx-co-badge">${a.cx}</span>` +
+          `<span class="cx-co-why">${a.why}</span>` +
+        `</span>`);
+    }
+
+    // 5. TOTAL COMPLEXITY footer below the last line of code
+    let lastLine = codeLines.length - 1;
+    while(lastLine > 0 && !codeLines[lastLine].trim()) lastLine--;
+    const totalEl = document.createElement('div');
+    totalEl.className = 'cx-total';
+    _renderTotal(totalEl, result, null);
+    _cxTotalEl = totalEl;
+    _cxWidgets.push(cm.addLineWidget(lastLine, totalEl, { noHScroll: true }));
+
     cm.refresh();
+  }
+
+  // ── TOTAL COMPLEXITY verdict footer (rebuilt with the fitted result) ──
+  function _renderTotal(el, result, data){
+    const t = (data && data.fit) ? data.fit.complexity : result.overallTime;
+    const s = result.overallSpace;
+    el.innerHTML =
+      `<span class="cx-total-lbl">TOTAL COMPLEXITY →</span>` +
+      `<span class="cx-total-pair"><span class="cx-total-k">TIME</span>` +
+        `<span class="cx-total-t">${t}</span></span>` +
+      `<span class="cx-total-sep">|</span>` +
+      `<span class="cx-total-pair"><span class="cx-total-k">SPACE</span>` +
+        `<span class="cx-total-s">${s}</span></span>`;
   }
 
   // ── Banner: heuristic-only, or fitted (asymptotic + this-run) after measure ──
