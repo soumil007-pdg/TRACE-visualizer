@@ -566,7 +566,6 @@
       const run = data.heuristicTime;
       html += `<span class="cx-ov-val cx-ov-t">${asy}</span>`;
       html += `<span class="cx-ov-why">fitted · ${Math.round(data.fit.confidence*100)}% conf</span>`;
-      if(run && run !== asy) html += `<span class="cx-ov-why">· ${run} this run</span>`;
     } else {
       html += `<span class="cx-ov-val cx-ov-t">${result.overallTime}</span>`;
       html += `<span class="cx-ov-why">${data && !data.scalable ? 'measured at 1 size' : 'measuring…'}</span>`;

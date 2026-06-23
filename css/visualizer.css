@@ -395,7 +395,7 @@ svg.tree   { display: block; }
 .cx-ov-t { color: var(--accent); }
 .cx-ov-s { color: var(--blue); }
 .cx-ov-why { font-size: 10px; color: var(--gray); }
-.cx-ov-sep { color: var(--gray); opacity: 0.3; font-size: 14px; }
+.cx-ov-sep { color: var(--gray); opacity: 0.5; font-size: 14px; }
 .cx-ov-hint {
   font-size: 10px; color: var(--gray); font-style: italic;
   padding: 1px 8px; border-radius: 3px; background: rgba(156,163,175,0.12);
