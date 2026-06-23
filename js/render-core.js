@@ -274,8 +274,37 @@ function computeDispS(cur){
   if(s.filename === '<driver>')
     return n1.filename === '<user>' ? n1 : s;
 
-  // ── User step, same function: n1 is post-execution, use it directly ──
-  if(n1.filename === s.filename) return n1;
+  // ── User step, same file: n1 is post-execution, use it directly ──
+  //    But if n1 lost data structures (entered a helper function), carry
+  //    forward from the nearest snap that had them so panels don't vanish.
+  if(n1.filename === s.filename){
+    const _dsCount = (x) => Object.keys(x.grids||{}).length + Object.keys(x.lists||{}).length +
+      Object.keys(x.dicts||{}).length + Object.keys(x.sets||{}).length +
+      Object.keys(x.trees||{}).length + Object.keys(x.linked_lists||{}).length;
+    const n1c = _dsCount(n1);
+    if(n1c === 0){
+      // n1 is in a helper frame with no structures — find the nearest prior snap that had them
+      let donor = null;
+      for(let i = cur; i >= Math.max(0, cur - 5); i--){
+        if(_dsCount(snaps[i]) > 0){ donor = snaps[i]; break; }
+      }
+      if(donor){
+        return {
+          ...n1,
+          lists:         { ...(donor.lists||{}) },
+          dicts:         { ...(donor.dicts||{}) },
+          sets:          { ...(donor.sets||{}) },
+          deques:        { ...(donor.deques||{}) },
+          grids:         { ...(donor.grids||{}) },
+          linked_lists:  { ...(donor.linked_lists||{}) },
+          trees:         { ...(donor.trees||{}) },
+          node_pointers: { ...(donor.node_pointers||{}) },
+          _var_order:    donor._var_order || n1._var_order,
+        };
+      }
+    }
+    return n1;
+  }
 
   // ── Frame boundary (last line of a user method, returning to driver).
   //    n1 is the driver snap (no self.*).  Peek further for the next user
@@ -372,6 +401,12 @@ function render(){
         const sv = locs[k];
         if(sv !== last){ hist.push(sv); last = sv; }
       }
+      // The history above is built from PRE-execution snapshots, but the chip
+      // beside it shows the POST-execution value (dispS, via look-ahead). Those
+      // two are one step out of sync, so on the exact line that changes a var
+      // the trail lagged a step (showed "11" alone, then "16 → 11" next step).
+      // Append the current post-exec value so old→new shows on the right line.
+      if(v !== last) hist.push(v);
       histories[k] = hist;
       if(hist.length > 1) hasAnyHistory = true;
     }
@@ -460,6 +495,13 @@ function render(){
     if(p){ out.push(p); rendered.add(n); }
   }
 
+  // Complexity growth panel — shown at the top of the trace while complexity
+  // mode is active, with a live operation counter that tracks the current step.
+  if(window.isComplexityActive && window.isComplexityActive() && window.renderComplexityPanel){
+    const cxPanel = window.renderComplexityPanel(cur);
+    if(cxPanel) out.unshift(cxPanel);
+  }
+
   if(!out.length) out.push('<div class="empty">No visualizable state at this step.</div>');
 
   // Save tree viewport BEFORE innerHTML wipes it. Use proportional position
@@ -485,6 +527,27 @@ function render(){
   const isLast = cur === snaps.length-1;
   if(isLast && _hasResult) renderResultPanel(_finalResult, true);
   else document.getElementById('result-panel').classList.remove('show');
+
+  // Complexity button: available on any step (>2 steps). Complexity mode
+  // stays on while scrubbing so the live op counter can track the step.
+  const cxBtn = document.getElementById('cx-btn');
+  if(cxBtn){
+    if(snaps.length > 2){
+      cxBtn.style.display = '';
+      cxBtn.classList.toggle('on', !!(window.isComplexityActive && window.isComplexityActive()));
+      cxBtn.onclick = function(){
+        if(window.isComplexityActive && window.isComplexityActive()){
+          window.clearComplexity();
+          render();
+        } else {
+          window.showComplexity(snaps, window._cm ? window._cm.getValue() : '');
+        }
+      };
+    } else {
+      cxBtn.style.display = 'none';
+      if(window.clearComplexity) window.clearComplexity();
+    }
+  }
 
   // Save post-execution state for diff highlighting on next render
   prev = {

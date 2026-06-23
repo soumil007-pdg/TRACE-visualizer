@@ -93,6 +93,17 @@ function _hasArrayCtx(roots){
 /* ── Measure text width (monospace estimate: ~0.6× font-size per char) ── */
 function _textW(str, fz){ return Math.ceil(String(str).length * fz * 0.62); }
 
+/* ── Auto-fit zoom: estimate tree width and pick a zoom that fits ── */
+function _autoFitZoom(roots, withArrays){
+  function _leafCount(n){ const ch = n.children||[]; return ch.length ? ch.reduce((s,c)=>s+_leafCount(c),0) : 1; }
+  const leaves = roots.reduce((s,r) => s + _leafCount(r), 0);
+  const baseNW = withArrays ? 180 : 120;
+  const estWidth = leaves * (baseNW + 14);
+  const target = 1200;
+  if(estWidth <= target) return 1;
+  return Math.max(0.25, Math.round(Math.min(1, target / estWidth) * 100) / 100);
+}
+
 /* ── Annotate each node with its own required card width (_nw) ──
    Called after LOD + _T are set, before _calcW.
    NW_min = _T.NW (the LOD tier minimum). */
@@ -257,6 +268,7 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
   //   full    : 158×48 — full args + return, e.g. "node=Tree(5)"  "→ None"
   //   rich    : 200×60 — bigger fonts, more room for ctx & return
   if(typeof window._svgTreeZoom !== 'number') window._svgTreeZoom = 1;
+  if(!window._svgTreeZoomManual) window._svgTreeZoom = _autoFitZoom(callTrees, withArrays);
   const zoom = Math.max(0.25, Math.min(2.5, window._svgTreeZoom));
   let lod;
   if(zoom < 0.4)       lod = 'tiny';
@@ -552,6 +564,7 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
       const z1 = Math.max(0.25, Math.min(2.5, z0 + dz));
       if(Math.abs(z1 - z0) < 0.001) return;
       window._svgTreeZoom = z1;
+      window._svgTreeZoomManual = true;
       if(zoomRAF) cancelAnimationFrame(zoomRAF);
       zoomRAF = requestAnimationFrame(() => {
         zoomRAF = 0;

@@ -42,6 +42,27 @@ async function initPyodide(){
   document.getElementById('run').disabled = false;
 }
 
+/* ── Operation counter (for complexity curve fitting) ───────────────────
+   Runs user code + a scaled driver through the lightweight count_ops Python
+   path (no snapshot building). Returns { ops, depth, error }. Used by
+   complexity.js to measure growth across input sizes. ─────────────────── */
+async function countOps(code, inputText){
+  if(!pyodide) return { ops:0, depth:0, error:'no runtime' };
+  const rawCode = code.replace(/\t/g, '    ');
+  let driver;
+  try { driver = buildDriver(rawCode, inputText).driver; }
+  catch(e){ return { ops:0, depth:0, error:'driver: '+String(e) }; }
+  pyodide.globals.set('_u', rawCode);
+  pyodide.globals.set('_d', driver);
+  try {
+    const raw = await pyodide.runPythonAsync('count_ops(_u,_d)');
+    return JSON.parse(raw);
+  } catch(e){
+    return { ops:0, depth:0, error:String(e) };
+  }
+}
+window.countOps = countOps;
+
 /* ── Run pipeline ───────────────────────────────────────────────────── */
 async function runCode(){
   if(!pyodide) return;
@@ -102,6 +123,8 @@ async function runCode(){
   _finalResult  = res.result ?? null;
   _hasResult    = res.has_result ?? false;
   _callTrees    = res.call_trees || [];
+  window._svgTreeZoomManual = false;
+  if(window.clearComplexity) window.clearComplexity();
 
   cur  = 0;
   prev = { lists:{}, grids:{}, locals:{}, dicts:{}, sets:{}, deques:{},

@@ -164,13 +164,34 @@ function rHeap(name, arr, pArr){
 /** Regex matching variable names that are typically array pointers/indices. */
 const PTR_NAMES = /^(left|right|lo|hi|low|high|start|end|l|r|i|j|p|q|ptr|mid|begin|slow|fast|head|tail|front|back|k|a|b|s|e|top|bot|anchor|runner|curr|nxt)$/i;
 
+/** Names assigned FROM a subscript (e.g. `b = arr[r]`) are VALUES, not indices —
+ *  they must not be drawn as array pointers. Cached per code string. */
+let _vvKey = null, _vvSet = null;
+function _valueVarNames(){
+  const code = (window._cm && window._cm.getValue()) || '';
+  if(code === _vvKey) return _vvSet;
+  const set = new Set();
+  const re = /\b([a-zA-Z_]\w*)\s*=\s*[a-zA-Z_]\w*\s*\[/g;
+  let m;
+  while((m = re.exec(code))) set.add(m[1]);
+  _vvKey = code; _vvSet = set;
+  return set;
+}
+
 /**
  * Detect pointer variables that point into arr.
  * Returns null if no pointers found, else { ptrs, lo, hi }.
+ *
+ * A scalar is treated as an index pointer only if its name looks pointer-ish,
+ * its value is a valid index, AND it isn't a value pulled out of the array
+ * (`x = arr[i]`). The last guard stops value-holders like `a`, `b` from being
+ * pinned at the index equal to their value.
  */
 function detectRange(arr, scalars){
+  const valueVars = _valueVarNames();
   const ptrs = {};
   for(const [k,v] of Object.entries(scalars)){
+    if(valueVars.has(k)) continue;
     if(typeof v==='number' && Number.isInteger(v) && v>=0 && v<arr.length && PTR_NAMES.test(k))
       (ptrs[v]||(ptrs[v]=[])).push(k);
   }

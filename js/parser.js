@@ -175,8 +175,10 @@ function parseLCI(raw){
   let i = 0;
   while(i < rawLines.length){
     const t = rawLines[i].trim();
-    if(/^[a-zA-Z_]\w*\s*=\s*$/.test(t)){
-      let combined = t, depth = 0;
+    let depth = 0;
+    for(const c of t){ if(c==='['||c==='('||c==='{') depth++; else if(c===']'||c===')'||c==='}') depth--; }
+    if(depth > 0){
+      let combined = t;
       i++;
       while(i < rawLines.length){
         const next = rawLines[i].trim();

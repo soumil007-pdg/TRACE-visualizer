@@ -6,7 +6,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 const TRACER = `
-import sys,json,math as _math,collections as _col,re as _re
+import sys,json,math as _math,collections as _col,re as _re,time as _time
 STEP_CAP=1000;MAX_LL=200;MAX_TR=200
 PREAMBLE="""
 import heapq,math,bisect,random,string,sys
@@ -474,4 +474,42 @@ def run_trace(u,d):
  has_result=raw_res is not _MISSING
  return json.dumps({'snapshots':snaps,'error':error,'result':result_data,
                     'has_result':has_result,'call_trees':_roots})
+
+# ── count_ops: lightweight operation counter for complexity curve fitting ──
+# Runs the same user+driver code but the tracer ONLY counts <user> line events
+# (no snapshot building → fast) plus peak recursion depth. Returns {ops,depth}.
+# Guarded by an op cap (~2M) and a wall-clock bail so a heavy/large-n run can't hang.
+def count_ops(u,d):
+ if'__init_error__'in _PRE:return json.dumps({'ops':0,'depth':0,'error':'Preamble: '+_PRE['__init_error__']})
+ sb=dict(_PRE);sb['__name__']='__main__'
+ try:cu=compile(u,'<user>','exec')if u.strip()else None
+ except Exception as e:return json.dumps({'ops':0,'depth':0,'error':'compile(user): '+str(e)})
+ try:cd=compile(d,'<driver>','exec')if d.strip()else None
+ except Exception as e:return json.dumps({'ops':0,'depth':0,'error':'compile(driver): '+str(e)})
+ OP_CAP=2000000
+ _state={'ops':0,'depth':0,'cur':0}
+ _t0=_time.time()
+ def coter(frame,event,arg):
+  fn=frame.f_code.co_filename
+  if fn!='<user>':return None
+  if event=='call':
+   _state['cur']+=1
+   if _state['cur']>_state['depth']:_state['depth']=_state['cur']
+   return coter
+  if event=='return':
+   if _state['cur']>0:_state['cur']-=1
+   return coter
+  if event=='line':
+   _state['ops']+=1
+   if _state['ops']>OP_CAP:raise RuntimeError('op cap')
+   if(_state['ops']&0x3FFF)==0 and _time.time()-_t0>4.0:raise RuntimeError('time cap')
+  return coter
+ err=None
+ sys.settrace(coter)
+ try:
+  if cu:exec(cu,sb)
+  if cd:exec(cd,sb)
+ except Exception as e:err=type(e).__name__+': '+str(e)
+ finally:sys.settrace(None)
+ return json.dumps({'ops':_state['ops'],'depth':_state['depth'],'error':err})
 `;
