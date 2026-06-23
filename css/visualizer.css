@@ -37,13 +37,14 @@
 /* ── Card wrapper: every renderer wraps its content in <div class="vb"> ─ */
 .vb {
   background: var(--white);
-  border: 1.5px solid var(--ink);
+  border: 1px solid rgba(0,0,0,.09);
+  border-radius: 10px;
   padding: 14px;
   position: relative;
-  box-shadow: var(--sh);
-  transition: box-shadow .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  transition: box-shadow .2s, border-color .2s;
 }
-.vb:hover { box-shadow: 4px 4px 0 var(--ink); }
+.vb:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12), 0 8px 32px rgba(0,0,0,.08); }
 .vb h3 {
   font-family: var(--mono);
   font-size: 10px; font-weight: 900; letter-spacing: 2px;
@@ -51,7 +52,22 @@
   margin: 0 0 12px;
   display: flex; align-items: center; gap: 8px;
 }
-.vb h3::after { content: ''; flex: 1; height: 1.5px; background: var(--ink); opacity: .35; }
+.vb h3::after { content: ''; flex: 1; height: 1px; background: var(--ink); opacity: .15; }
+
+/* Category-based accent border (left stripe by content type) */
+.vb:has(.idx-row),
+.vb:has(.list-row),
+.vb:has(.bin-cell),
+.vb:has(.str-cell),
+.vb:has(.bool-cell),
+.vb:has(.var-history),
+.vb:has(.chips) { border-left: 3px solid var(--accent); }
+
+.vb:has(.ll-row),
+.vb:has(.tree-wrap),
+.vb:has(.queue-wrap) { border-left: 3px solid var(--blue); }
+
+.vb:has(.grid-wrap) { border-left: 3px solid var(--purple); }
 .sub { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 9.5px; }
 
 /* ── Variable history trail ─────────────────────────────────────────── */

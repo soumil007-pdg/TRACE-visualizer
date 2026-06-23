@@ -34,13 +34,16 @@
   markSaved();
 })();
 
-/* ── Better empty state ─────────────────────────────────────────────── */
+/* ── Designed empty state ────────────────────────────────────────────── */
 document.getElementById('vc').innerHTML = `<div class="empty">
-  <div style="font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">Ready</div>
-  Pick an example from <strong>Example ▾</strong> above,<br/>
-  or paste your Python solution + LeetCode test input,<br/>
-  then press <strong style="color:var(--accent)">⌘/Ctrl + ↵</strong> or click <strong>RUN</strong>.<br/><br/>
-  <span style="font-size:11px;color:var(--gray);">Press <strong>?</strong> for shortcuts &amp; tips</span>
+  <div class="empty-icon">⚡</div>
+  <div class="empty-title">Ready to trace</div>
+  <div class="empty-sub">Pick a template above — or paste your own code + input and hit RUN</div>
+  <div class="empty-steps">
+    <div class="empty-step"><span class="es-num">1</span>Paste code &amp; input</div>
+    <div class="empty-step"><span class="es-num">2</span>Click RUN</div>
+    <div class="empty-step"><span class="es-num">3</span>Step through visuals</div>
+  </div>
 </div>`;
 
 /* ── Start Pyodide (last — non-blocking visual init must be done first) ── */
