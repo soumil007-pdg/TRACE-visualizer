@@ -38,7 +38,7 @@
 document.getElementById('vc').innerHTML = `<div class="empty">
   <div class="empty-icon">⚡</div>
   <div class="empty-title">Ready to trace</div>
-  <div class="empty-sub">Pick a template above — or paste your own code + input and hit RUN</div>
+  <div class="empty-sub">Pick a template above, or paste your own code + input and hit RUN</div>
   <div class="empty-steps">
     <div class="empty-step"><span class="es-num">1</span>Paste code &amp; input</div>
     <div class="empty-step"><span class="es-num">2</span>Click RUN</div>
