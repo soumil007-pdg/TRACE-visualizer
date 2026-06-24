@@ -595,7 +595,7 @@ svg.tree   { display: block; }
 .ob-hint-accent { border-left-color: var(--blue); background: color-mix(in srgb, var(--blue) 8%, transparent); }
 .ob-hint-arrow  { color: var(--accent); font-weight: 900; flex-shrink: 0; }
 .ob-hint code {
-  background: var(--ink); color: var(--accent); padding: 1px 5px;
+  background: #1c1c1c; color: #00c9a7; padding: 1px 5px;
   border-radius: 3px; font-family: var(--mono); font-size: 11px;
 }
 
@@ -712,9 +712,9 @@ svg.tree   { display: block; }
 
 /* kbd override inside ob-step */
 .ob-step kbd {
-  display: inline-block; background: var(--ink); color: var(--text);
+  display: inline-block; background: #1c1c1c; color: #e5e5e5;
   padding: 1px 6px; border-radius: 4px; font-size: 11px; font-family: var(--mono);
-  border: 1px solid var(--gray);
+  border: 1px solid #555;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
