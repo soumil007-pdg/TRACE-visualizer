@@ -175,12 +175,12 @@
     const nested = blocks.some(b => b.parent !== null);
     // sorting via compare-swap nested loops
     if(nested && /\b(arr|nums|a)\s*\[\s*\w+\s*\]\s*[<>]/.test(c) && /=\s*\w+\s*\[\s*\w+/.test(c))
-      return { text: 'Looks like a comparison sort — optimal is O(n log n)', optimal: fitName === 'O(n log n)' };
+      return { text: 'Looks like a comparison sort, optimal is O(n log n)', optimal: fitName === 'O(n log n)' };
     // linear scan with a dict/set (two-sum style)
     if(/(dict|\{\}|set\(|seen|hashmap|defaultdict|counter)/.test(c) && (fitName === 'O(n)'))
-      return { text: 'Single pass with a hash map — already optimal', optimal: true };
+      return { text: 'Single pass with a hash map, already optimal', optimal: true };
     if(fitName === 'O(log n)')
-      return { text: 'Logarithmic — already optimal for search', optimal: true };
+      return { text: 'Logarithmic, already optimal for search', optimal: true };
     return null;
   }
 
@@ -460,7 +460,7 @@
       } else {
         const tp = /^while\s*\(?\s*([a-z]\w*)\s*[<>]=?\s*([a-z]\w*)/i.exec(src);
         const conv = tp && new RegExp(`\\b(${tp[1]}|${tp[2]})\\s*[+\\-]=`).test(code);
-        if(conv) why = `two pointers converge — each element processed once (≤ ${block.hits} steps)`;
+        if(conv) why = `two pointers converge, each element processed once (≤ ${block.hits} steps)`;
         else     why = `loop body runs ${block.hits}× ≈ ${cx}`;
       }
       place(block.startLine, { kind:'time', cx, why });
@@ -475,7 +475,7 @@
           if(m && !spaceAnnotated.has(i)){
             const fnName = m[1];
             if(codeLines.slice(i+1).join('\n').includes(fnName + '(')){
-              place(i, { kind:'space', cx:sp.complexity, why:`recursion stack — max call depth ${sp.maxSize}` });
+              place(i, { kind:'space', cx:sp.complexity, why:`recursion stack, max call depth ${sp.maxSize}` });
               spaceAnnotated.add(i);
               break;
             }
@@ -488,7 +488,7 @@
         if(new RegExp('\\b' + esc + '\\s*=').test(codeLines[i]) && !spaceAnnotated.has(i)){
           const note = sp.maxSize >= result.n * 0.5 ? `grows with input (≈${sp.maxSize})` : `holds ${sp.maxSize}`;
           place(i, { kind:'space', cx:sp.complexity,
-                     why: sp.isInput ? `input · ${sp.name} ${note}` : `allocates ${sp.name} — ${note}` });
+                     why: sp.isInput ? `input · ${sp.name} ${note}` : `allocates ${sp.name}, ${note}` });
           spaceAnnotated.add(i);
           break;
         }
@@ -503,18 +503,18 @@
       if(!src || src.startsWith('#')) continue;
       // tuple swap with subscripts both sides → in-place, O(1) space
       if(/\w+\s*\[[^\]]*\]\s*,\s*\w+\s*\[[^\]]*\]\s*=\s*\w+\s*\[[^\]]*\]\s*,/.test(src)){
-        place(ln0, { kind:'space', cx:'O(1)', why:'in-place swap — no auxiliary array' });
+        place(ln0, { kind:'space', cx:'O(1)', why:'in-place swap, no auxiliary array' });
         continue;
       }
       if(/^(def |class |return\b|if |elif |else|for |while )/.test(src)) continue;
       // x = arr[i]  → O(1) array access (read)
       if(/^[a-z_]\w*\s*=\s*[a-z_]\w*\s*\[[^\]]*\]\s*$/i.test(src)){
-        place(ln0, { kind:'time', cx:'O(1)', why:'array access — constant time' });
+        place(ln0, { kind:'time', cx:'O(1)', why:'array access, constant time' });
         continue;
       }
       // scalar init before the first loop:  l = 0  /  r = len(arr) - 1
       if(ln0 < firstLoopLine && /^[a-z_]\w*\s*=\s*[^=]/i.test(src) && !/[\[\{]/.test((src.split('=')[1] || ''))){
-        place(ln0, { kind:'time', cx:'O(1)', why:'allocation — constant time & space' });
+        place(ln0, { kind:'time', cx:'O(1)', why:'allocation, constant time & space' });
         continue;
       }
     }

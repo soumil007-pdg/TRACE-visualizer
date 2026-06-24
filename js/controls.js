@@ -314,7 +314,7 @@ liveBtnEl.addEventListener('click', ()=>{
     clearTimeout(_liveTimer);
     liveBtnEl.classList.remove('pending');
   } else {
-    Toast.show('Live mode on — reruns 1 s after you stop typing', 'success', 2000);
+    Toast.show('Live mode on, reruns 1 s after you stop typing', 'success', 2000);
   }
 });
 
