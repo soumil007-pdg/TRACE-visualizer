@@ -325,10 +325,11 @@
 
 /* Mobile drawer (hidden on desktop, shown via JS toggle) */
 #mobile-drawer {
-  display: none; position: fixed; top: 56px; right: 8px;
+  display: none; position: fixed; top: 82px; left: 12px; right: auto;
   background: var(--white); border: 1.5px solid var(--ink); border-radius: 8px;
   padding: 10px; flex-direction: column; gap: 6px; z-index: 999;
   box-shadow: 0 8px 24px rgba(0,0,0,.2); min-width: 200px;
+  max-width: calc(100vw - 24px);
 }
 #mobile-drawer.show { display: flex; }
 #mobile-drawer .hbtn { width: 100%; justify-content: flex-start; display: inline-flex; }
