@@ -63,10 +63,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
 
 <!-- App stylesheets (load order matters: base → visualizer → themes → pro) -->
-<link rel="stylesheet" href="css/base.css?v=100"/>
+<link rel="stylesheet" href="css/base.css?v=105"/>
 <link rel="stylesheet" href="css/visualizer.css?v=104"/>
 <link rel="stylesheet" href="css/themes.css?v=101"/>
-<link rel="stylesheet" href="css/pro.css?v=100"/>
+<link rel="stylesheet" href="css/pro.css?v=105"/>
 
 <!-- Inline: apply saved theme before first paint to prevent flash -->
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
@@ -139,7 +139,7 @@
     <span>?</span>
   </button>
   <button class="hbtn ob-pulse" id="btn-onboard" title="New here? Quick start guide (2 min)">
-    <span>🎯</span>
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
   </button>
 
   <button id="mobile-menu-btn" title="Menu">☰</button>
@@ -436,7 +436,7 @@
 </div>
 
 <!-- Floating bug-report button -->
-<button id="bug-fab" title="Report a problem">🐞</button>
+<button id="bug-fab" title="Report a problem"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg></button>
 
 <!-- ── Toast container ─────────────────────────────────────────────── -->
 <div id="toast-container"></div>
@@ -498,7 +498,7 @@ or:  nums = [2,7,11,15]
       <div id="exec-head"></div>
       <div id="errbanner"></div>
       <div id="vc"><div class="empty">
-        <div class="empty-icon">⚡</div>
+        <div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" stroke="none"><path d="M13 2 4.5 13.2a.6.6 0 0 0 .48.96H11l-1.2 7.2a.5.5 0 0 0 .9.38L19.5 10.8a.6.6 0 0 0-.48-.96H13l1.1-7.5a.5.5 0 0 0-.9-.34z"/></svg></div>
         <div class="empty-title">Ready to trace</div>
         <div class="empty-sub">Pick a template above, or paste your own code + input and hit RUN</div>
         <div class="empty-steps">
@@ -572,7 +572,7 @@ or:  nums = [2,7,11,15]
 <script src="js/pro-ui.js?v=100"></script>      <!-- snippets, modals, share, mobile      -->
 <script src="js/onboard.js?v=100"></script>     <!-- new-user onboarding guide            -->
 <script src="js/shortcuts.js?v=100"></script>   <!-- keyboard shortcuts                   -->
-<script src="js/app.js?v=102"></script>         <!-- restoreState + initPyodide kickoff   -->
+<script src="js/app.js?v=105"></script>         <!-- restoreState + initPyodide kickoff   -->
 
 </body>
 </html>

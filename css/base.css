@@ -321,8 +321,10 @@ body.dv { user-select: none; cursor: row-resize; }
 }
 .empty-icon {
   font-size: 40px; line-height: 1;
+  color: var(--accent);
   animation: empty-float 3s ease-in-out infinite;
 }
+.empty-icon svg { display: block; }
 @keyframes empty-float {
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-8px); }

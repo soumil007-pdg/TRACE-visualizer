@@ -36,7 +36,7 @@
 
 /* ── Designed empty state ────────────────────────────────────────────── */
 document.getElementById('vc').innerHTML = `<div class="empty">
-  <div class="empty-icon">⚡</div>
+  <div class="empty-icon"><svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" stroke="none"><path d="M13 2 4.5 13.2a.6.6 0 0 0 .48.96H11l-1.2 7.2a.5.5 0 0 0 .9.38L19.5 10.8a.6.6 0 0 0-.48-.96H13l1.1-7.5a.5.5 0 0 0-.9-.34z"/></svg></div>
   <div class="empty-title">Ready to trace</div>
   <div class="empty-sub">Pick a template above, or paste your own code + input and hit RUN</div>
   <div class="empty-steps">
