@@ -359,6 +359,6 @@
 }
 #bug-fab:hover { transform: translateY(-2px); box-shadow: var(--shL); background: var(--cream); }
 #bug-fab:active { transform: translateY(0); }
-@media (max-width: 880px){
-  #bug-fab { bottom: 86px; right: 12px; width: 44px; height: 44px; }
-}
+/* ≤880px the FAB is hidden (see the display:none rule above) — bug reports
+   move into the ☰ drawer (#m-bug), since the bottom bar leaves no room to
+   float it without overlapping the playback controls. */
