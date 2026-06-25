@@ -573,7 +573,14 @@ svg.tree   { display: block; }
 @keyframes ob-slide-out-left { to   { opacity:0; transform:translateX(-28px); } }
 @keyframes ob-slide-out-right{ to   { opacity:0; transform:translateX(28px); } }
 
-.ob-step-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+.ob-step-icon {
+  width: 44px; height: 44px; margin-bottom: 12px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.ob-step-icon svg { width: 24px; height: 24px; display: block; }
 .ob-step-title {
   font-size: 20px; font-weight: 800; color: var(--text);
   margin: 0 0 8px; line-height: 1.2;
