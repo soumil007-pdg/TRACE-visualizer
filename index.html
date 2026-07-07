@@ -67,6 +67,7 @@
 <link rel="stylesheet" href="css/visualizer.css?v=104"/>
 <link rel="stylesheet" href="css/themes.css?v=101"/>
 <link rel="stylesheet" href="css/pro.css?v=107"/>
+<link rel="stylesheet" href="css/pattern-finder.css?v=113"/>
 
 <!-- Inline: apply saved theme before first paint to prevent flash -->
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
@@ -141,6 +142,10 @@
   <button class="hbtn ob-pulse" id="btn-onboard" title="New here? Quick start guide (2 min)">
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
   </button>
+  <button class="hbtn" id="btn-pattern" title="Paste a problem — find the pattern &amp; thought process">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h6M4 12h4M4 17h8"/><path d="M14 6h6v6h-6z"/><path d="M15.5 16.5l2 2 3.5-3.5" stroke-width="1.8"/></svg>
+    <span>Find Pattern</span>
+  </button>
 
   <button id="mobile-menu-btn" title="Menu">☰</button>
 
@@ -160,6 +165,7 @@
   <button class="hbtn always-mobile" id="m-save">Save Snippet</button>
   <button class="hbtn always-mobile" id="m-share">Share URL</button>
   <button class="hbtn always-mobile" id="m-help">Help / Shortcuts</button>
+  <button class="hbtn always-mobile" id="m-pattern">Find Pattern</button>
   <button class="hbtn always-mobile" id="m-bug"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>Report a Problem</button>
   <div id="theme-picker-mobile" style="display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--ink);margin-top:4px;justify-content:center;">
     <div class="tsw" data-t="light" title="Light" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#FAF7F2;cursor:pointer;"></div>
@@ -399,6 +405,26 @@
   </div>
 </div>
 
+<!-- ── Find Pattern Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop" id="pattern-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Find the Pattern</div>
+      <button class="modal-close" data-close="pattern-modal">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="pf-intro">Paste any DSA problem statement — LeetCode, an interview question, anything. Runs entirely in your browser (no API key, no network call) and walks the same thought process every time: restate it, find the brute force, spot the waste, read the constraints, name the pattern, and check the traps.</p>
+      <textarea class="pf-textarea" id="pf-input" placeholder="Paste the full problem — including constraints like '1 ≤ n ≤ 10^5'. The more you paste, the sharper the read."></textarea>
+      <div class="pf-actions">
+        <button id="pf-analyze">Analyze</button>
+        <button id="pf-clear">Clear</button>
+        <span id="pf-status"></span>
+      </div>
+      <div id="pf-result"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ── Share Modal ─────────────────────────────────────────────────── -->
 <div class="modal-backdrop" id="share-modal">
   <div class="modal" style="max-width:560px;">
@@ -570,6 +596,7 @@ or:  nums = [2,7,11,15]
 <script src="js/runner.js?v=100"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
 <script src="js/controls.js?v=100"></script>    <!-- cm, tiEl, transport buttons, theme   -->
 <script src="js/pro-ui.js?v=100"></script>      <!-- snippets, modals, share, mobile      -->
+<script src="js/pattern-finder.js?v=113"></script> <!-- Find Pattern: local reasoning engine -->
 <script src="js/onboard.js?v=100"></script>     <!-- new-user onboarding guide            -->
 <script src="js/shortcuts.js?v=100"></script>   <!-- keyboard shortcuts                   -->
 <script src="js/app.js?v=105"></script>         <!-- restoreState + initPyodide kickoff   -->

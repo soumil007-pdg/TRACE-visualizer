@@ -1,0 +1,102 @@
+/* ══════════════════════════════════════════════════════════════════════
+   pattern-finder.css — "Find the Pattern" modal.
+   Reuses TRACE's existing design tokens only (no new palette).
+   ══════════════════════════════════════════════════════════════════════ */
+
+#pattern-modal .modal { max-width: 760px; }
+
+.pf-intro {
+  font-family: var(--ui); font-size: 13px; color: var(--muted);
+  line-height: 1.55; margin: 0 0 16px;
+}
+
+.pf-textarea {
+  width: 100%; min-height: 130px; resize: vertical;
+  background: var(--cream); border: 1.5px solid var(--ink);
+  border-radius: 8px; padding: 12px 14px;
+  font-family: var(--ui); font-size: 14px; color: var(--text);
+  line-height: 1.6; outline: none; transition: border-color .15s;
+}
+.pf-textarea:focus { border-color: var(--accent); }
+.pf-textarea::placeholder { color: var(--gray); }
+
+.pf-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.pf-actions button {
+  font-family: var(--mono); font-size: 11px; font-weight: 900;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 9px 18px; border-radius: 6px; cursor: pointer;
+  transition: all .15s;
+}
+#pf-analyze { background: var(--accent); color: #000; border: none; }
+#pf-analyze:hover { opacity: .88; }
+#pf-clear { background: transparent; color: var(--muted); border: 1.5px solid var(--border2, var(--ink)); }
+#pf-clear:hover { color: var(--text); background: var(--cream); }
+#pf-status { font-family: var(--ui); font-size: 12px; color: var(--red); }
+
+/* ── Result panel ─────────────────────────────────────────────────── */
+#pf-result { display: none; margin-top: 20px; }
+#pf-result.show { display: block; }
+
+.pf-result-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.pf-pattern-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px; border: 1.5px solid;
+  font-family: var(--ui); font-size: 14px; font-weight: 700;
+}
+.pf-confidence {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  padding: 4px 10px; border-radius: 12px; letter-spacing: .02em;
+}
+.pf-inline-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 12px;
+  font-family: var(--ui); font-size: 13px; font-weight: 700;
+}
+
+.pf-candidates {
+  font-family: var(--ui); font-size: 12px; color: var(--muted);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.pf-cand-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11px; padding: 3px 10px;
+  border-radius: 12px; border: 1px solid var(--ink); color: var(--text);
+  cursor: pointer; transition: all .12s;
+}
+.pf-pattern-badge svg, .pf-inline-badge svg, .pf-cand-chip svg { flex-shrink: 0; display: block; }
+.pf-cand-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+.pf-steps { border-top: 1.5px solid var(--ink); padding-top: 14px; }
+.pf-step { display: flex; gap: 12px; margin-bottom: 16px; }
+.pf-step:last-child { margin-bottom: 0; }
+.pf-step-num {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent); border: 1.5px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 900; margin-top: 1px;
+}
+.pf-step-label {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  margin-bottom: 4px;
+}
+.pf-step-text { font-family: var(--ui); font-size: 13.5px; color: var(--text); line-height: 1.6; }
+.pf-step-text b { color: var(--accent); }
+
+.pf-list { margin: 2px 0 0; padding-left: 18px; }
+.pf-list li { font-family: var(--ui); font-size: 13px; color: var(--text); line-height: 1.7; }
+
+.pf-cx-box {
+  display: flex; gap: 22px; margin-top: 4px;
+  background: var(--cream); border: 1px solid var(--ink); border-radius: 6px;
+  padding: 8px 12px; font-family: var(--mono); font-size: 13px; color: var(--muted);
+}
+.pf-cx-box b { color: var(--green); }
+
+@media (max-width: 640px) {
+  .pf-cx-box { flex-direction: column; gap: 4px; }
+}
