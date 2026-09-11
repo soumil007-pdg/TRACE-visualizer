@@ -600,7 +600,12 @@ or:  nums = [2,7,11,15]
 <script src="js/onboard.js?v=100"></script>     <!-- new-user onboarding guide            -->
 <script src="js/shortcuts.js?v=100"></script>   <!-- keyboard shortcuts                   -->
 <script src="js/app.js?v=105"></script>         <!-- restoreState + initPyodide kickoff   -->
-<script src="js/test.js?v=1"></script>          <!-- TEST.* stress harness (console-only)  -->
+<!-- TEST.* stress harness — dev only. Never loads on the live site. -->
+<script>
+if(location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('test=1')){
+  document.head.appendChild(Object.assign(document.createElement('script'), { src:'js/test.js?v=1' }));
+}
+</script>
 
 </body>
 </html>
