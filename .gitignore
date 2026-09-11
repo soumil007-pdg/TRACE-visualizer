@@ -1,0 +1,3 @@
+# Dev-only stress harness — must never reach the Pages deploy.
+# Content is preserved in git history (commit c8eed2b) if you need it back.
+js/test.js
