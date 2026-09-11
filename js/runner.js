@@ -40,6 +40,9 @@ async function initPyodide(){
   setStat('Ready','ready');
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('run').disabled = false;
+  // A shared link pointing at a step auto-runs, so the recipient lands
+  // on that step instead of having to press RUN first.
+  if(window._pendingStep != null) runCode();
 }
 
 /* ── Operation counter (for complexity curve fitting) ───────────────────
@@ -132,6 +135,13 @@ async function runCode(){
   render();
   setStat(snaps.length + ' steps', 'ready');
   updCtrl();
+
+  // Shared link carried a step — land on it now that the trace exists.
+  if(window._pendingStep != null && snaps.length){
+    const target = Math.min(window._pendingStep, snaps.length - 1);
+    window._pendingStep = null;
+    reRender(target);
+  }
 
   // Mobile: after a successful run, hand the whole screen to the trace so the
   // visualization is what the user sees (code editor collapses; "← Edit code"

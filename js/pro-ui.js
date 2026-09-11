@@ -224,8 +224,10 @@ function utf8b64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64utf8(s){ try { return decodeURIComponent(escape(atob(s))); } catch { return null; } }
 
 function buildShareURL(){
-  const payload = JSON.stringify({ c:cm.getValue(), i:tiEl.value });
-  const hash    = utf8b64(payload);
+  const data = { c:cm.getValue(), i:tiEl.value };
+  // Carry the step you're looking at, so "see step 47" survives the link.
+  if(snaps.length && cur > 0) data.p = cur;
+  const hash = utf8b64(JSON.stringify(data));
   return location.origin + location.pathname + '#s=' + hash;
 }
 
@@ -240,7 +242,11 @@ function tryLoadFromHash(){
       cm.setValue(obj.c);
       tiEl.value = obj.i || '';
       refreshP();
-      Toast.show('Loaded from shared URL');
+      // Step is applied after the trace runs (runner.js) — snaps is empty now.
+      window._pendingStep = (typeof obj.p === 'number' && obj.p > 0) ? obj.p : null;
+      Toast.show(window._pendingStep
+        ? `Shared link — jumping to step ${window._pendingStep}`
+        : 'Loaded from shared URL');
       history.replaceState(null, '', location.pathname);
       return true;
     }
