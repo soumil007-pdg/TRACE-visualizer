@@ -6,7 +6,7 @@
   window.dispatchEvent(new Event('java-parser-ready'));
 </script>
 <script src="../js/java-preamble.js?v=4"></script>
-<script src="../js/java-instrument.js?v=3"></script>
+<script src="../js/java-instrument.js?v=5"></script>
 <script src="../js/java-runner.js?v=2"></script>
 <script src="../js/java-driver.js?v=2"></script>
 <script>
@@ -230,6 +230,34 @@ public class Main {
   eq('tree left child', sc.trees.t && sc.trees.t.left && sc.trees.t.left.val, 9);
   eq('tree right child', sc.trees.t && sc.trees.t.right && sc.trees.t.right.val, 20);
   eq('tree grandchild', sc.trees.t && sc.trees.t.right.left && sc.trees.t.right.left.val, 15);
+
+  /* Injection must never split a construct from its continuation.
+     Found by LeetCode 4, which writes if {...} and else {...} on separate
+     lines; appending after the if line gives "'else' without 'if'". */
+  const elseSrc = `public class Solution {
+  public int pick(int[] a, int[] b) {
+    int i = 0;
+    int out = 0;
+    if (a[i] <= b[i]) { out = a[i]; i = i + 1; }
+    else { out = b[i]; i = i + 1; }
+    return out;
+  }
+}`;
+  const ei = instrumentJava(elseSrc);
+  ok('else source instruments', ei.error === null, String(ei.error));
+  ok('nothing injected before else',
+     !/__Tracer\.t\([^)]*\);\s*\n\s*else\b/.test(ei.code),
+     'injected between if and else:\n' + ei.code);
+  const eprog = JAVA_PREAMBLE + '\n' + ei.code.replace('public class Solution','class Solution') + `
+public class Main {
+  public static void main(String[] x){
+    int[] a = {1,5}; int[] b = {9,2};
+    System.out.println("__RESULT{" + __Tracer.serResult(new Solution().pick(a,b)) + "}");
+  }
+}`;
+  const ej = await judge0Run(eprog);
+  ok('if/else program COMPILES', ej.compileOutput === null, 'compile said: ' + ej.compileOutput);
+  eq('if/else result', parseCards(ej.stdout).result, 1);
 
   report();
  } catch(e){ out.textContent = 'THREW: ' + e.message + '\n' + e.stack; }

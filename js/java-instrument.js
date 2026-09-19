@@ -140,6 +140,17 @@ function methodSpans(cst){
    Rewrite the source. The user's own lines are never modified, only
    appended to, so line numbers in the emitted cards still point at the
    original code and the editor highlight lands correctly. */
+/* Does the next meaningful line continue the construct that just ended?
+   Nothing may be injected between the two. */
+function _continuationFollows(lines, idx){
+  for(let k = idx + 1; k < lines.length; k++){
+    const t = lines[k].trim();
+    if(!t || t.startsWith('//') || t.startsWith('*') || t.startsWith('/*')) continue;
+    return /^(\}\s*)?(else|catch|finally|while)\b/.test(t);
+  }
+  return false;
+}
+
 function instrumentJava(src){
   const unsupported = detectUnsupported(src);
   const { cst, error } = parseJava(src);
@@ -173,7 +184,14 @@ function instrumentJava(src){
       continue;
     }
 
-    if(points.has(ln)){
+    /* A line can close an inner statement AND sit right before a
+       continuation keyword. Appending after
+           if (a) { x = 1; }
+           else   { x = 2; }
+       lands between the if and its else, and javac rejects it as
+       "'else' without 'if'". Java's continuations are else, catch,
+       finally, and the while of a do-while. */
+    if(points.has(ln) && !_continuationFollows(lines, i)){
       const vars = liveAt(decls, ln);
       if(vars.length){
         const kv = vars.map(v => `"${v}", ${v}`).join(', ');
