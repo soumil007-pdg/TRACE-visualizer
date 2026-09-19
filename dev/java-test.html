@@ -1,0 +1,75 @@
+<!doctype html><meta charset="utf-8"><title>TRACE Java tests</title>
+<pre id="out" style="font:13px ui-monospace,Menlo,monospace;padding:16px;white-space:pre-wrap">running…</pre>
+<script src="../js/java-preamble.js?v=1"></script>
+<script src="../js/java-runner.js?v=1"></script>
+<script>
+const out = document.getElementById('out');
+const fails = []; let n = 0;
+function eq(name, actual, expected){
+  n++;
+  const a = JSON.stringify(actual), e = JSON.stringify(expected);
+  if(a !== e) fails.push(`FAIL: ${name}\n  expected ${e}\n  actual   ${a}`);
+}
+function ok(name, cond, detail){ n++; if(!cond) fails.push(`FAIL: ${name}${detail?'\n  '+detail:''}`); }
+function report(){ out.textContent = fails.length ? fails.join('\n\n') : `ALL PASS (${n})`; }
+
+(async function(){
+ try {
+  /* ── Task 1: card parser ── */
+  const stdout = [
+    '__T{"line":5,"locals":{"count":0},"grids":{},"lists":{}}',
+    'some unrelated program output',
+    '__T{"line":7,"locals":{"count":1},"grids":{},"lists":{}}',
+    '__RESULT{3}'
+  ].join('\n');
+  const r = parseCards(stdout);
+  eq('parseCards count', r.snapshots.length, 2);
+  eq('parseCards first line', r.snapshots[0].line, 5);
+  eq('parseCards ignores noise', r.snapshots[1].locals.count, 1);
+  eq('parseCards result', r.result, 3);
+  eq('parseCards has_result', r.has_result, true);
+
+  /* ── Task 1: real JVM ── */
+  const hello = 'public class Main{public static void main(String[] a){System.out.println(42);}}';
+  const j = await judge0Run(hello);
+  eq('judge0 stdout', (j.stdout||'').trim(), '42');
+  eq('judge0 clean compile', j.compileOutput, null);
+  ok('judge0 under 15s', j.timeMs < 15000, `took ${Math.round(j.timeMs)}ms`);
+
+  /* ── Task 2: preamble classifies values into renderer buckets ── */
+  const prog = JAVA_PREAMBLE + `
+public class Main {
+${JAVA_PREAMBLE_ALIASES}
+  public static void main(String[] args){
+    int[] arr = {1,2,3};
+    char[][] g = {{'1','0'},{'0','1'}};
+    java.util.Map<String,Integer> m = new java.util.HashMap<>();
+    m.put("a", 1);
+    java.util.Set<Integer> s = new java.util.HashSet<>();
+    s.add(7);
+    java.util.List<Integer> li = new java.util.ArrayList<>();
+    li.add(5);
+    ListNode ln = __H.buildList(new int[]{1,2,3});
+    __t(4, "arr", arr, "g", g, "m", m, "s", s, "li", li, "ln", ln, "total", 9);
+    System.out.println("__RESULT{" + __ser(9) + "}");
+  }
+}`;
+  const jr = await judge0Run(prog);
+  ok('preamble compiles', jr.compileOutput === null, 'compile said: ' + jr.compileOutput);
+  if(jr.compileOutput){ report(); return; }
+  const pc = parseCards(jr.stdout);
+  eq('one card emitted', pc.snapshots.length, 1);
+  const c = pc.snapshots[0] || {locals:{},lists:{},grids:{},dicts:{},sets:{},linked_lists:{}};
+  eq('int -> locals',        c.locals.total, 9);
+  eq('int[] -> lists',       c.lists.arr, [1,2,3]);
+  eq('char[][] -> grids',    c.grids.g, [['1','0'],['0','1']]);
+  eq('Map -> dicts',         c.dicts.m, {a:1});
+  eq('Set -> sets',          c.sets.s, [7]);
+  eq('List -> lists',        c.lists.li, [5]);
+  eq('ListNode -> linked_lists', c.linked_lists.ln, [1,2,3]);
+  eq('result parsed',        pc.result, 9);
+
+  report();
+ } catch(e){ out.textContent = 'THREW: ' + e.message + '\n' + e.stack; }
+})();
+</script>
