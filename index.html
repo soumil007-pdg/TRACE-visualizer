@@ -593,8 +593,16 @@ or:  nums = [2,7,11,15]
 <script src="js/renderers-recursion.js?v=100"></script> <!-- rRecursionPanels (call stack + tree) -->
 <script src="js/complexity.js?v=101"></script>          <!-- Time/space complexity analysis     -->
 <script src="js/render-core.js?v=100"></script>         <!-- snaps/cur/prev state, render()    -->
+<!-- java-parser is native ESM; expose it as a global so the classic scripts
+     below can use it without adding a build step to this project -->
+<script type="module">
+  import * as JavaParser from 'https://cdn.jsdelivr.net/npm/java-parser@3.0.1/+esm';
+  window.JavaParser = JavaParser;
+  window.dispatchEvent(new Event('java-parser-ready'));
+</script>
 <script src="js/java-preamble.js?v=1"></script>  <!-- JAVA_PREAMBLE, Java-side tracer  -->
-<script src="js/java-runner.js?v=2"></script>    <!-- judge0Run, parseCards            -->
+<script src="js/java-runner.js?v=2"></script>
+<script src="js/java-instrument.js?v=2"></script> <!-- instrumentJava        -->    <!-- judge0Run, parseCards            -->
 <script src="js/runner.js?v=114"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
 <script src="js/controls.js?v=100"></script>    <!-- cm, tiEl, transport buttons, theme   -->
 <script src="js/pro-ui.js?v=114"></script>      <!-- snippets, modals, share, mobile      -->

@@ -1,6 +1,12 @@
 <!doctype html><meta charset="utf-8"><title>TRACE Java tests</title>
 <pre id="out" style="font:13px ui-monospace,Menlo,monospace;padding:16px;white-space:pre-wrap">running…</pre>
+<script type="module">
+  import * as JavaParser from 'https://cdn.jsdelivr.net/npm/java-parser@3.0.1/+esm';
+  window.JavaParser = JavaParser;
+  window.dispatchEvent(new Event('java-parser-ready'));
+</script>
 <script src="../js/java-preamble.js?v=1"></script>
+<script src="../js/java-instrument.js?v=2"></script>
 <script src="../js/java-runner.js?v=2"></script>
 <script>
 const out = document.getElementById('out');
@@ -100,6 +106,69 @@ ${JAVA_PREAMBLE_ALIASES}
   ok('detects a memo hit', JSON.stringify(roots).includes('"is_memo":true'),
      'fib(4) recomputes fib(2), so some node must be flagged is_memo');
   eq('fib(4) result', parseCards(cj.stdout).result, 3);
+
+  /* ── Tasks 4 and 5: parsing, scoping, injection ── */
+  if(!window.JavaParser) await new Promise(r => addEventListener('java-parser-ready', r, {once:true}));
+
+  const jsrc = `public class Solution {
+  public int numIslands(char[][] grid) {
+    int rows = grid.length;
+    int count = 0;
+    for (int r = 0; r < rows; r++) {
+      int inner = r * 2;
+      if (grid[r][0] == '1') count++;
+    }
+    return count;
+  }
+}`;
+  const pj = parseJava(jsrc);
+  ok('java parses', pj.error === null, String(pj.error));
+
+  const decls = collectDecls(pj.cst);
+  const names = decls.map(d => d.name).sort();
+  eq('finds params and locals', names, ['count','grid','inner','r','rows']);
+
+  eq('line 4 scope', liveAt(decls, 4).sort(), ['count','grid','rows']);
+  ok('loop var live inside the loop', liveAt(decls, 6).includes('r'), JSON.stringify(liveAt(decls,6)));
+  ok('loop var dead after the loop', !liveAt(decls, 8).includes('r'), JSON.stringify(liveAt(decls,8)));
+  ok('inner dead after the loop', !liveAt(decls, 8).includes('inner'), JSON.stringify(liveAt(decls,8)));
+
+  const inst = instrumentJava(jsrc);
+  ok('instrument succeeds', inst.error === null, String(inst.error));
+  ok('injects trace calls', /__Tracer\.t\(\d+,/.test(inst.code), 'no trace call');
+  ok('injects an enter call', /__Tracer\.enter\("numIslands"/.test(inst.code), 'no enter call');
+  ok('original code preserved', inst.code.includes('int count = 0;'), 'original line lost');
+  ok('never injects after return', !/return count;\s*\n\s*__Tracer\.t/.test(inst.code),
+     'injected unreachable code after return');
+  ok('no unsupported in plain code', inst.unsupported.length === 0, JSON.stringify(inst.unsupported));
+
+  /* The braceless-loop trap: injecting by "line ends in a semicolon" would
+     emit __t(i) after the loop, where i is out of scope. Must compile. */
+  const braceless = `public class Solution {
+  public int total(int[] a) {
+    int sum = 0;
+    for (int i = 0; i < a.length; i++)
+      sum += a[i];
+    return sum;
+  }
+}`;
+  const bi = instrumentJava(braceless);
+  ok('braceless loop instruments', bi.error === null, String(bi.error));
+  const bprog = JAVA_PREAMBLE + '\n' +
+    bi.code.replace('public class Solution','class Solution') + `
+public class Main {
+${JAVA_PREAMBLE_ALIASES}
+  public static void main(String[] x){
+    int[] a = {1,2,3};
+    System.out.println("__RESULT{" + __ser(new Solution().total(a)) + "}");
+  }
+}`;
+  const bj = await judge0Run(bprog);
+  ok('braceless loop COMPILES', bj.compileOutput === null, 'compile said: ' + bj.compileOutput);
+  eq('braceless loop result', parseCards(bj.stdout).result, 6);
+
+  const si = instrumentJava('public class S{ int f(java.util.List<Integer> l){ return l.stream().mapToInt(Integer::intValue).sum(); } }');
+  ok('detects streams', si.unsupported.includes('streams'), JSON.stringify(si.unsupported));
 
   report();
  } catch(e){ out.textContent = 'THREW: ' + e.message + '\n' + e.stack; }

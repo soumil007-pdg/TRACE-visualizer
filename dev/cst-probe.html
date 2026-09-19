@@ -1,0 +1,64 @@
+<!doctype html><meta charset="utf-8"><title>CST probe</title>
+<pre id="out" style="font:12px ui-monospace,Menlo,monospace;padding:16px;white-space:pre-wrap">loading…</pre>
+<script type="module">
+import * as JP from 'https://cdn.jsdelivr.net/npm/java-parser@3.0.1/+esm';
+const out = document.getElementById('out');
+const src = `public class Solution {
+  public int numIslands(char[][] grid) {
+    int rows = grid.length;
+    int count = 0;
+    for (int r = 0; r < rows; r++) {
+      int inner = r * 2;
+      if (grid[r][0] == '1') count++;
+    }
+    return count;
+  }
+  void helper(int a, String b) { int z = a; }
+}`;
+const cst = JP.parse(src);
+
+// every distinct node name, with the line range it spans
+const seen = new Map();
+(function walk(n, depth){
+  if(!n || typeof n !== 'object') return;
+  if(n.name){
+    if(!seen.has(n.name)) seen.set(n.name, []);
+    seen.get(n.name).push(depth);
+  }
+  for(const k in n.children||{}) (n.children[k]||[]).forEach(c=>walk(c, depth+1));
+})(cst, 0);
+
+// how are declarations and params actually represented?
+const decls = [];
+(function walk(n){
+  if(!n || typeof n !== 'object') return;
+  if(n.name === 'variableDeclaratorId' && n.children?.Identifier){
+    const t = n.children.Identifier[0];
+    decls.push({ name:t.image, line:t.startLine, col:t.startColumn });
+  }
+  for(const k in n.children||{}) (n.children[k]||[]).forEach(walk);
+})(cst);
+
+// what nodes could serve as scope boundaries, and do they carry line info?
+const scopes = [];
+(function walk(n){
+  if(!n || typeof n !== 'object') return;
+  if(n.name && /block|ForStatement|methodDeclaration|methodBody/i.test(n.name)){
+    let lo=Infinity, hi=-Infinity;
+    (function dig(x){
+      if(!x || typeof x!=='object') return;
+      if(typeof x.startLine==='number') lo=Math.min(lo,x.startLine);
+      if(typeof x.endLine==='number')   hi=Math.max(hi,x.endLine);
+      for(const k in x.children||{}) (x.children[k]||[]).forEach(dig);
+    })(n);
+    scopes.push({ node:n.name, from:lo, to:hi });
+  }
+  for(const k in n.children||{}) (n.children[k]||[]).forEach(walk);
+})(cst);
+
+out.textContent =
+  'DECLARATIONS FOUND:\n' + JSON.stringify(decls, null, 1) +
+  '\n\nSCOPE-LIKE NODES (name, line range):\n' +
+  scopes.map(s=>`  ${s.node}  ${s.from}..${s.to}`).join('\n') +
+  '\n\nALL NODE NAMES:\n  ' + [...seen.keys()].sort().join('\n  ');
+</script>
