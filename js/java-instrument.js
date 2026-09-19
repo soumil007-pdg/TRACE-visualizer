@@ -164,6 +164,12 @@ function instrumentJava(src){
     if(m && /\{\s*$/.test(raw)){
       const kv = m.params.map(p => `"${p}", ${p}`).join(', ');
       out.push(`${indent}  __Tracer.enter("${m.name}"${kv ? ', ' + kv : ''});`);
+      /* Also snapshot on entry. Python's tracer fires on the LINE event,
+         before the line runs, so it captures the untouched state; ours
+         fires after each statement and would never record it. Without
+         this the first grid or map state is missing and every
+         differential comparison is off by one. */
+      if(kv) out.push(`${indent}  __Tracer.t(${ln}, ${kv});`);
       continue;
     }
 

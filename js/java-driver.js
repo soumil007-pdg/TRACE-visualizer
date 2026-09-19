@@ -99,7 +99,7 @@ function buildJavaDriver(userCode, inputText){
   const body = sig.returnType === 'void'
     ? `    ${call};\n    System.out.println("__RESULT{null}");`
     : `    ${sig.returnType} __r = ${call};\n` +
-      `    System.out.println("__RESULT{" + __Tracer.ser(__r) + "}");`;
+      `    System.out.println("__RESULT{" + __Tracer.serResult(__r) + "}");`;
 
   return { driver: decls.join('\n') + '\n' + body, error:null };
 }

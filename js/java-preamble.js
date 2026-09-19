@@ -165,6 +165,18 @@ class __Tracer {
     return ser(v);
   }
 
+  /* The RESULT panel takes a different shape again: tracer.js:463,468 wrap
+     structures as {__kind__:'tree',root} and {__kind__:'list',nodes,cycle_to}.
+     Plain values pass through ser unchanged. */
+  static String serResult(Object o){
+    if(o instanceof ListNode)
+      return "{" + q("__kind__") + ":" + q("list") + "," + serLL((ListNode)o).substring(1);
+    if(o instanceof TreeNode)
+      return "{" + q("__kind__") + ":" + q("tree") + "," + q("root") + ":"
+             + serTree((TreeNode)o, new HashSet<Integer>()) + "}";
+    return ser(o);
+  }
+
   /* One card per traced statement. kv is name,value,name,value,... */
   static void t(int line, Object... kv){
     if(steps++ >= CAP) return;
