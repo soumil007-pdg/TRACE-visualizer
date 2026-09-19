@@ -1,7 +1,7 @@
 <!doctype html><meta charset="utf-8"><title>TRACE Java tests</title>
 <pre id="out" style="font:13px ui-monospace,Menlo,monospace;padding:16px;white-space:pre-wrap">running…</pre>
 <script src="../js/java-preamble.js?v=1"></script>
-<script src="../js/java-runner.js?v=1"></script>
+<script src="../js/java-runner.js?v=2"></script>
 <script>
 const out = document.getElementById('out');
 const fails = []; let n = 0;
@@ -68,6 +68,38 @@ ${JAVA_PREAMBLE_ALIASES}
   eq('List -> lists',        c.lists.li, [5]);
   eq('ListNode -> linked_lists', c.linked_lists.ln, [1,2,3]);
   eq('result parsed',        pc.result, 9);
+
+  /* ── call tree node shape must match tracer.js:409-410 exactly, or
+        renderers-recursion.js renders "undefined" and an empty tree ── */
+  const ctProg = JAVA_PREAMBLE + `
+public class Main {
+${JAVA_PREAMBLE_ALIASES}
+  static int fib(int n){
+    __enter("fib", "n", n);
+    if(n<2){ __exit(n); return n; }
+    int r = fib(n-1) + fib(n-2);
+    __exit(r); return r;
+  }
+  public static void main(String[] a){
+    int r = fib(4);
+    System.out.println("__RESULT{" + __ser(r) + "}");
+  }
+}`;
+  const cj = await judge0Run(ctProg);
+  ok('call tree prog compiles', cj.compileOutput === null, 'compile said: ' + cj.compileOutput);
+  const roots = buildCallTrees(cj.stdout);
+  eq('one root call', roots.length, 1);
+  const rt = roots[0] || {};
+  eq('uses .func not .fn', rt.func, 'fib');
+  eq('args are repr strings', rt.args, { n: '4' });
+  eq('has .ctx', typeof rt.ctx, 'object');
+  eq('uses .return_val', rt.return_val, 3);
+  eq('sets .returned', rt.returned, true);
+  eq('root not memo', rt.is_memo, false);
+  eq('root has 2 children', rt.children.length, 2);
+  ok('detects a memo hit', JSON.stringify(roots).includes('"is_memo":true'),
+     'fib(4) recomputes fib(2), so some node must be flagged is_memo');
+  eq('fib(4) result', parseCards(cj.stdout).result, 3);
 
   report();
  } catch(e){ out.textContent = 'THREW: ' + e.message + '\n' + e.stack; }

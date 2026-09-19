@@ -55,22 +55,50 @@ function parseCards(stdout){
   return { snapshots, result, has_result };
 }
 
-/* Rebuild the call forest from __CALL / __RET lines, shaped like the Python
-   tracer's _roots so renderers-recursion.js can draw it unchanged. */
+/* Rebuild the call forest from __CALL / __RET lines.
+
+   The node shape is NOT ours to choose: renderers-recursion.js reads
+   .func / .args / .ctx / .return_val / .returned / .is_memo / .children,
+   and args values are repr STRINGS (Python truncates them to 22 chars),
+   not raw values. Match tracer.js:409-410 exactly or the panel renders
+   "undefined" and the tree comes out empty. */
+function _argRepr(v){
+  if(typeof v === 'string') return "'" + v + "'";
+  if(v === null) return 'None';
+  if(v === true) return 'True';
+  if(v === false) return 'False';
+  if(Array.isArray(v)) return JSON.stringify(v).slice(0, 22);
+  return String(v).slice(0, 22);
+}
+
 function buildCallTrees(stdout){
-  const byId = new Map(), roots = [];
+  const byId = new Map(), roots = [], stack = [], seen = new Set();
   for(const line of String(stdout).split('\n')){
     if(line.startsWith('__CALL{')){
       let c; try { c = JSON.parse(line.slice(6)); } catch(e){ continue; }
-      const node = { id:c.id, fn:c.fn, depth:c.depth, args:c.args,
-                     ret:undefined, children:[] };
+
+      const args = {};
+      for(const k in (c.args || {})) args[k] = _argRepr(c.args[k]);
+
+      // memo detection mirrors tracer.js: same (func, args) seen before
+      const memoKey = c.fn + '|' + JSON.stringify(Object.entries(args).sort());
+      const is_memo = seen.has(memoKey);
+      seen.add(memoKey);
+
+      const node = {
+        id: c.id, func: c.fn, args, ctx: {}, depth: c.depth,
+        return_val: null, returned: false, children: [], is_memo
+      };
       byId.set(c.id, node);
-      const parent = c.parent != null ? byId.get(c.parent) : null;
+      const parent = stack.length ? stack[stack.length - 1] : null;
       (parent ? parent.children : roots).push(node);
+      stack.push(node);
+
     } else if(line.startsWith('__RET{')){
       let r; try { r = JSON.parse(line.slice(5)); } catch(e){ continue; }
       const node = byId.get(r.id);
-      if(node) node.ret = r.ret;
+      if(node){ node.return_val = r.ret; node.returned = true; }
+      if(stack.length && stack[stack.length - 1].id === r.id) stack.pop();
     }
   }
   return roots;
