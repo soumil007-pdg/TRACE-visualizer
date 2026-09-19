@@ -161,3 +161,115 @@ const TMPL = {
     input: `grid = [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]`
   },
 };
+
+/* ── Java templates ───────────────────────────────────────────────────
+   Parallel to TMPL above. These carry a `label` because the Java options
+   are generated at runtime, where the Python ones are authored directly
+   in index.html. ─────────────────────────────────────────────────────── */
+const TMPL_JAVA = {
+  blank: { label: 'Blank (paste your own)', code: '', input: '' },
+
+  grid_islands: {
+    label: 'Grid · Number of Islands',
+    code: `public class Solution {
+  public int numIslands(char[][] grid) {
+    int rows = grid.length;
+    int cols = grid[0].length;
+    int count = 0;
+    for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < cols; c++) {
+        if (grid[r][c] == '1') {
+          count = count + 1;
+          dfs(grid, r, c, rows, cols);
+        }
+      }
+    }
+    return count;
+  }
+
+  void dfs(char[][] g, int r, int c, int rows, int cols) {
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+    if (g[r][c] != '1') return;
+    g[r][c] = '2';
+    dfs(g, r + 1, c, rows, cols);
+    dfs(g, r - 1, c, rows, cols);
+    dfs(g, r, c + 1, rows, cols);
+    dfs(g, r, c - 1, rows, cols);
+  }
+}`,
+    input: 'grid = [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]'
+  },
+
+  array_twosum: {
+    label: 'Array · Two Sum (hashmap)',
+    code: `public class Solution {
+  public int[] twoSum(int[] nums, int target) {
+    java.util.Map<Integer, Integer> seen = new java.util.HashMap<>();
+    for (int i = 0; i < nums.length; i++) {
+      int need = target - nums[i];
+      if (seen.containsKey(need)) {
+        return new int[]{ seen.get(need), i };
+      }
+      seen.put(nums[i], i);
+    }
+    return new int[]{};
+  }
+}`,
+    input: 'nums = [2,7,11,15]\ntarget = 22'
+  },
+
+  binary_search: {
+    label: 'Array · Binary Search',
+    code: `public class Solution {
+  public int search(int[] nums, int target) {
+    int left = 0;
+    int right = nums.length - 1;
+    while (left <= right) {
+      int mid = (left + right) / 2;
+      if (nums[mid] == target) {
+        return mid;
+      }
+      if (nums[mid] < target) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+    return -1;
+  }
+}`,
+    input: 'nums = [-1,0,3,5,9,12]\ntarget = 9'
+  },
+
+  ll_reverse: {
+    label: 'Linked List · Reverse',
+    code: `public class Solution {
+  public ListNode reverseList(ListNode head) {
+    ListNode prev = null;
+    ListNode cur = head;
+    while (cur != null) {
+      ListNode nxt = cur.next;
+      cur.next = prev;
+      prev = cur;
+      cur = nxt;
+    }
+    return prev;
+  }
+}`,
+    input: 'head = [1,2,3,4,5]'
+  },
+
+  tree_depth: {
+    label: 'Binary Tree · Max Depth',
+    code: `public class Solution {
+  public int maxDepth(TreeNode root) {
+    if (root == null) return 0;
+    int left = maxDepth(root.left);
+    int right = maxDepth(root.right);
+    int best = Math.max(left, right) + 1;
+    return best;
+  }
+}`,
+    input: 'root = [3,9,20,null,null,15,7]'
+  }
+};

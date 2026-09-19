@@ -68,6 +68,7 @@ window.countOps = countOps;
 
 /* ── Run pipeline ───────────────────────────────────────────────────── */
 async function runCode(){
+  if(window.LANG === 'java') return runCodeJava();
   if(!pyodide) return;
   setStat('Running…', null);
   document.getElementById('errbanner').classList.remove('show');
@@ -187,4 +188,52 @@ async function runCode(){
 
     window._liveAutoPlay(startFrom);
   }
+}
+
+/* ── Java run path ───────────────────────────────────────────────────
+   Same responsibilities as runCode() above, different engine: the trace
+   comes back from a real JVM instead of Pyodide. Everything downstream
+   (render, updCtrl, the panels) is shared. ─────────────────────────── */
+async function runCodeJava(){
+  setStat('Compiling…', null);
+  document.getElementById('errbanner').classList.remove('show');
+  document.getElementById('result-panel').classList.remove('show');
+  if(window._markExecutedLines) window._markExecutedLines([]);
+
+  const res = await runJavaSource(window._cm.getValue(), window._tiEl.value);
+
+  if(res.unsupported.length){
+    setStat('Not traceable', 'err');
+    showErr('Tracing does not support ' + res.unsupported.join(' or ') +
+            ' yet, so the visualization would be wrong. Everything else in ' +
+            'your code is supported.');
+    return;
+  }
+  if(res.error){ setStat('Error','err'); showErr(res.error); return; }
+  if(!res.snapshots.length){
+    setStat('No steps','err');
+    showErr('Nothing was traced. Check that your test input matches the method signature.');
+    return;
+  }
+
+  snaps        = res.snapshots;
+  _finalResult = res.result;
+  _hasResult   = res.has_result;
+  _callTrees   = res.call_trees;
+  window._svgTreeZoomManual = false;
+  if(window.clearComplexity) window.clearComplexity();
+
+  cur  = 0;
+  prev = { lists:{}, grids:{}, locals:{}, dicts:{}, sets:{}, deques:{},
+           node_pointers:{}, linked_lists:{}, trees:{} };
+  render();
+  setStat(snaps.length + ' steps', 'ready');
+  updCtrl();
+
+  if(window.innerWidth <= 880) document.body.classList.add('mobile-trace-view');
+  if(window._markExecutedLines) window._markExecutedLines(snaps);
+  if(window.Analytics) Analytics.track('code_run', {
+    steps: snaps.length, had_error: false, live: false, lang: 'java',
+    code_len: window._cm.getValue().length
+  });
 }

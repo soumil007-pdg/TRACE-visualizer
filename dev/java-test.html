@@ -5,9 +5,10 @@
   window.JavaParser = JavaParser;
   window.dispatchEvent(new Event('java-parser-ready'));
 </script>
-<script src="../js/java-preamble.js?v=1"></script>
+<script src="../js/java-preamble.js?v=3"></script>
 <script src="../js/java-instrument.js?v=2"></script>
 <script src="../js/java-runner.js?v=2"></script>
+<script src="../js/java-driver.js?v=1"></script>
 <script>
 const out = document.getElementById('out');
 const fails = []; let n = 0;
@@ -72,7 +73,9 @@ ${JAVA_PREAMBLE_ALIASES}
   eq('Map -> dicts',         c.dicts.m, {a:1});
   eq('Set -> sets',          c.sets.s, [7]);
   eq('List -> lists',        c.lists.li, [5]);
-  eq('ListNode -> linked_lists', c.linked_lists.ln, [1,2,3]);
+  /* not a plain array: the bucket carries {nodes:[{id,val}],cycle_to},
+     which is what renderers.js rLL destructures */
+  eq('ListNode -> linked_lists values', (c.linked_lists.ln.nodes||[]).map(n=>n.val), [1,2,3]);
   eq('result parsed',        pc.result, 9);
 
   /* ── call tree node shape must match tracer.js:409-410 exactly, or
@@ -169,6 +172,64 @@ ${JAVA_PREAMBLE_ALIASES}
 
   const si = instrumentJava('public class S{ int f(java.util.List<Integer> l){ return l.stream().mapToInt(Integer::intValue).sum(); } }');
   ok('detects streams', si.unsupported.includes('streams'), JSON.stringify(si.unsupported));
+
+  /* ── Task 6: driver builder ── */
+  const sigSrc = `public class Solution {
+  public int numIslands(char[][] grid) { return 0; }
+}`;
+  const d1 = buildJavaDriver(sigSrc, 'grid = [["1","0"],["0","1"]]');
+  ok('driver built', d1.error === null, String(d1.error));
+  ok('declares char[][] literally', /char\[\]\[\] grid = \{\{'1','0'\},\{'0','1'\}\};/.test(d1.driver), d1.driver);
+  ok('calls the method', /numIslands\(grid\)/.test(d1.driver), d1.driver);
+  ok('prints a result', d1.driver.includes('__RESULT'), d1.driver);
+
+  const d2 = buildJavaDriver('public class Solution{ public int[] twoSum(int[] nums, int target){ return null; } }',
+                             'nums = [2,7,11]\ntarget = 9');
+  ok('int[] literal', /int\[\] nums = \{2,7,11\};/.test(d2.driver), d2.driver);
+  ok('scalar literal', /int target = 9;/.test(d2.driver), d2.driver);
+  ok('both args passed', /twoSum\(nums, target\)/.test(d2.driver), d2.driver);
+
+  const d3 = buildJavaDriver('public class Solution{ public ListNode reverseList(ListNode head){ return null; } }',
+                             'head = [1,2,3]');
+  ok('ListNode built via helper', /__H\.buildList\(new int\[\]\{1,2,3\}\)/.test(d3.driver), d3.driver);
+
+  const d4 = buildJavaDriver('public class Solution{ public int maxDepth(TreeNode root){ return 0; } }',
+                             'root = [3,9,20,null,null,15,7]');
+  ok('TreeNode built with nulls', /__H\.buildTree\(new Integer\[\]\{3,9,20,null,null,15,7\}\)/.test(d4.driver), d4.driver);
+
+  const d5 = buildJavaDriver(sigSrc, 'wrongName = [[1]]');
+  ok('missing input is an error', !!d5.error && d5.error.includes('grid'), String(d5.error));
+
+  /* ── Structure buckets are NOT plain arrays ──
+     tracer.js stores {nodes:[{id,val}],cycle_to} and nested
+     {id,val,left,right}; renderers.js destructures exactly those, so an
+     array here makes rLL throw on nodes.length. */
+  const structProg = JAVA_PREAMBLE + `
+public class Main {
+  public static void main(String[] a){
+    ListNode l = __H.buildList(new int[]{1,2,3});
+    TreeNode t = __H.buildTree(new Integer[]{3,9,20,null,null,15,7});
+    __Tracer.t(1, "l", l, "t", t);
+    System.out.println("__RESULT{0}");
+  }
+}`;
+  const sj = await judge0Run(structProg);
+  ok('struct program compiles', sj.compileOutput === null, 'compile said: ' + sj.compileOutput);
+  ok('no runtime NPE on tree', !sj.stderr, String(sj.stderr).slice(0,120));
+  const sc = parseCards(sj.stdout).snapshots[0] || { linked_lists:{}, trees:{} };
+  ok('linked list is an object not an array', !Array.isArray(sc.linked_lists.l),
+     JSON.stringify(sc.linked_lists.l));
+  ok('linked list has .nodes', Array.isArray(sc.linked_lists.l && sc.linked_lists.l.nodes),
+     JSON.stringify(sc.linked_lists.l));
+  eq('linked list values', (sc.linked_lists.l.nodes||[]).map(n=>n.val), [1,2,3]);
+  eq('cycle_to null when acyclic', sc.linked_lists.l.cycle_to, null);
+  ok('nodes carry ids', (sc.linked_lists.l.nodes||[]).every(n => typeof n.id === 'number'),
+     JSON.stringify(sc.linked_lists.l.nodes));
+  ok('tree is nested not level order', !Array.isArray(sc.trees.t), JSON.stringify(sc.trees.t));
+  eq('tree root value', sc.trees.t && sc.trees.t.val, 3);
+  eq('tree left child', sc.trees.t && sc.trees.t.left && sc.trees.t.left.val, 9);
+  eq('tree right child', sc.trees.t && sc.trees.t.right && sc.trees.t.right.val, 20);
+  eq('tree grandchild', sc.trees.t && sc.trees.t.right.left && sc.trees.t.right.left.val, 15);
 
   report();
  } catch(e){ out.textContent = 'THREW: ' + e.message + '\n' + e.stack; }

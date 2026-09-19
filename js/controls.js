@@ -62,16 +62,38 @@ cm.on('change', refreshP);
 
 /* ── Example template dropdown ──────────────────────────────────────── */
 document.getElementById('tmpl').addEventListener('change', e=>{
-  const t = TMPL[e.target.value];
+  const t = (window.LANG === 'java' ? TMPL_JAVA : TMPL)[e.target.value];
   if(!t) return;
   cm.setValue(t.code);
   tiEl.value = t.input;
   refreshP();
 });
+/* ── Language selector ───────────────────────────────────────────────
+   The Python <option> list is authored in index.html; snapshot it so
+   switching back can restore it verbatim rather than regenerating it
+   (TMPL entries carry no label). ─────────────────────────────────────── */
+const PY_TMPL_OPTIONS = document.getElementById('tmpl').innerHTML;
+
+window.refreshTemplates = function(loadDefault){
+  const sel = document.getElementById('tmpl');
+  if(window.LANG === 'java'){
+    sel.innerHTML = Object.entries(TMPL_JAVA)
+      .map(([k,v]) => `<option value="${k}">${v.label}</option>`).join('');
+    sel.value = 'grid_islands';
+  } else {
+    sel.innerHTML = PY_TMPL_OPTIONS;
+    sel.value = 'binary_search';
+  }
+  if(loadDefault !== false) sel.dispatchEvent(new Event('change'));
+};
+
+const langSel = document.getElementById('lang-sel');
+langSel.value = window.LANG;
+langSel.addEventListener('change', ()=> setLang(langSel.value));
+if(window.LANG === 'java') cm.setOption('mode', 'text/x-java');
+
 // Load default example on startup
-document.getElementById('tmpl').value = 'binary_search';
-cm.setValue(TMPL.binary_search.code);
-tiEl.value = TMPL.binary_search.input;
+refreshTemplates();
 refreshP();
 
 /* ── Toggle generated-driver preview ───────────────────────────────── */

@@ -94,10 +94,13 @@ class __Tracer {
       return b.append(']').toString();
     }
     if(o instanceof TreeNode){
-      StringBuilder b=new StringBuilder("["); ArrayDeque<TreeNode> q2=new ArrayDeque<TreeNode>();
-      q2.add((TreeNode)o); boolean f=true; int guard=0;
-      while(!q2.isEmpty() && guard++<200){
-        TreeNode t=q2.poll(); if(!f)b.append(','); f=false;
+      /* ArrayList, not ArrayDeque: a leaf's children are null and ArrayDeque
+         throws NullPointerException on add(null). Level order with nulls,
+         matching how LeetCode prints a tree. */
+      StringBuilder b=new StringBuilder("["); ArrayList<TreeNode> q2=new ArrayList<TreeNode>();
+      q2.add((TreeNode)o); int i=0; boolean f=true;
+      while(i<q2.size() && i<200){
+        TreeNode t=q2.get(i++); if(!f)b.append(','); f=false;
         if(t==null){ b.append("null"); continue; }
         b.append(t.val); q2.add(t.left); q2.add(t.right);
       }
@@ -117,6 +120,51 @@ class __Tracer {
     return q(String.valueOf(o));
   }
 
+  /* The linked_lists and trees BUCKETS are not plain arrays. tracer.js
+     stores {nodes:[{id,val}], cycle_to} and a nested {id,val,left,right},
+     and renderers.js destructures exactly those. Emitting an array here
+     makes rLL throw on nodes.length. Node identity comes from
+     System.identityHashCode, standing in for Python's id(). */
+  static String serLL(ListNode head){
+    StringBuilder b = new StringBuilder("{");
+    b.append(q("nodes")).append(":[");
+    LinkedHashMap<Integer,Integer> seen = new LinkedHashMap<Integer,Integer>();
+    ListNode p = head; int idx = 0; boolean f = true; String cyc = "null";
+    while(p != null && idx < 200){
+      int nid = System.identityHashCode(p);
+      if(seen.containsKey(nid)){ cyc = String.valueOf(seen.get(nid)); break; }
+      seen.put(nid, idx);
+      if(!f) b.append(',');
+      f = false;
+      b.append('{').append(q("id")).append(':').append(nid)
+       .append(',').append(q("val")).append(':').append(ser(p.val)).append('}');
+      p = p.next; idx++;
+    }
+    b.append("],").append(q("cycle_to")).append(':').append(cyc);
+    return b.append('}').toString();
+  }
+
+  static String serTree(TreeNode n, HashSet<Integer> seen){
+    if(n == null) return "null";
+    int nid = System.identityHashCode(n);
+    if(seen.contains(nid) || seen.size() >= 200) return "null";
+    seen.add(nid);
+    StringBuilder b = new StringBuilder("{");
+    b.append(q("id")).append(':').append(nid);
+    b.append(',').append(q("val")).append(':').append(ser(n.val));
+    b.append(',').append(q("left")).append(':').append(serTree(n.left, seen));
+    b.append(',').append(q("right")).append(':').append(serTree(n.right, seen));
+    return b.append('}').toString();
+  }
+
+  /* Bucket values use the structure-shaped form; everything else uses ser. */
+  static String serFor(String bucket, Object v){
+    if(bucket.equals("linked_lists") && v instanceof ListNode) return serLL((ListNode)v);
+    if(bucket.equals("trees") && v instanceof TreeNode)
+      return serTree((TreeNode)v, new HashSet<Integer>());
+    return ser(v);
+  }
+
   /* One card per traced statement. kv is name,value,name,value,... */
   static void t(int line, Object... kv){
     if(steps++ >= CAP) return;
@@ -126,9 +174,10 @@ class __Tracer {
     for(int i=0;i+1<kv.length;i+=2){
       String name = String.valueOf(kv[i]);
       Object val  = kv[i+1];
-      StringBuilder b = buckets.get(bucket(val));
+      String bk = bucket(val);
+      StringBuilder b = buckets.get(bk);
       if(b.length()>0) b.append(',');
-      b.append(q(name)).append(':').append(ser(val));
+      b.append(q(name)).append(':').append(serFor(bk, val));
     }
     StringBuilder o = new StringBuilder("__T{");
     o.append(q("line")).append(':').append(line);

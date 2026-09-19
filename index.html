@@ -94,6 +94,14 @@
   </div>
 
   <div class="hm">
+    <label for="lang-sel">Language</label>
+    <select id="lang-sel">
+      <option value="python">Python</option>
+      <option value="java">Java</option>
+    </select>
+  </div>
+
+  <div class="hm">
     <label for="tmpl">Example</label>
     <select id="tmpl">
       <option value="blank">── Blank (paste your own) ──</option>
@@ -569,6 +577,7 @@ or:  nums = [2,7,11,15]
      ══════════════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
 
@@ -587,7 +596,7 @@ or:  nums = [2,7,11,15]
 <script src="js/utils.js?v=100"></script>       <!-- esc, fv                              -->
 <script src="js/storage.js?v=100"></script>     <!-- Store, Toast                         -->
 <script src="js/tracer.js?v=100"></script>      <!-- TRACER (Python string)               -->
-<script src="js/templates.js?v=100"></script>   <!-- TMPL                                 -->
+<script src="js/templates.js?v=101"></script>   <!-- TMPL                                 -->
 <script src="js/parser.js?v=100"></script>      <!-- buildDriver + helpers                -->
 <script src="js/renderers.js?v=100"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
 <script src="js/renderers-recursion.js?v=100"></script> <!-- rRecursionPanels (call stack + tree) -->
@@ -600,11 +609,13 @@ or:  nums = [2,7,11,15]
   window.JavaParser = JavaParser;
   window.dispatchEvent(new Event('java-parser-ready'));
 </script>
-<script src="js/java-preamble.js?v=1"></script>  <!-- JAVA_PREAMBLE, Java-side tracer  -->
+<script src="js/java-preamble.js?v=3"></script>  <!-- JAVA_PREAMBLE, Java-side tracer  -->
 <script src="js/java-runner.js?v=2"></script>
-<script src="js/java-instrument.js?v=2"></script> <!-- instrumentJava        -->    <!-- judge0Run, parseCards            -->
-<script src="js/runner.js?v=114"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
-<script src="js/controls.js?v=100"></script>    <!-- cm, tiEl, transport buttons, theme   -->
+<script src="js/java-instrument.js?v=2"></script> <!-- instrumentJava        -->
+<script src="js/java-driver.js?v=1"></script>    <!-- buildJavaDriver               -->
+<script src="js/lang.js?v=1"></script>           <!-- LANG, runJavaSource, setLang  -->
+<script src="js/runner.js?v=115"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
+<script src="js/controls.js?v=101"></script>    <!-- cm, tiEl, transport buttons, theme   -->
 <script src="js/pro-ui.js?v=114"></script>      <!-- snippets, modals, share, mobile      -->
 <script src="js/pattern-finder.js?v=113"></script> <!-- Find Pattern: local reasoning engine -->
 <script src="js/onboard.js?v=100"></script>     <!-- new-user onboarding guide            -->
