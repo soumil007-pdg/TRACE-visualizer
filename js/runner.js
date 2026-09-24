@@ -37,12 +37,12 @@ let pyodide = null;
 async function initPyodide(){
   pyodide = await loadPyodide({ indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/' });
   await pyodide.runPythonAsync(TRACER);
-  setStat('Ready','ready');
-  document.getElementById('loading').classList.add('hidden');
-  document.getElementById('run').disabled = false;
+  // RUN, its label and the loading overlay follow the chosen language:
+  // Java never waits for Pyodide, Python does (lang.js).
+  _syncRunButton();
   // A shared link pointing at a step auto-runs, so the recipient lands
   // on that step instead of having to press RUN first.
-  if(window._pendingStep != null) runCode();
+  if(window._pendingStep != null && window.LANG === 'python' && window._langEntered) runCode();
 }
 
 /* ── Operation counter (for complexity curve fitting) ───────────────────

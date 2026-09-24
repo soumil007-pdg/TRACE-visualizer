@@ -87,10 +87,6 @@ window.refreshTemplates = function(loadDefault){
   if(loadDefault !== false) sel.dispatchEvent(new Event('change'));
 };
 
-const langSel = document.getElementById('lang-sel');
-langSel.value = window.LANG;
-langSel.addEventListener('change', ()=> setLang(langSel.value));
-if(window.LANG === 'java') cm.setOption('mode', 'text/x-java');
 
 // Load default example on startup
 refreshTemplates();

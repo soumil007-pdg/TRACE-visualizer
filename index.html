@@ -63,11 +63,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
 
 <!-- App stylesheets (load order matters: base → visualizer → themes → pro) -->
-<link rel="stylesheet" href="css/base.css?v=105"/>
+<link rel="stylesheet" href="css/base.css?v=106"/>
 <link rel="stylesheet" href="css/visualizer.css?v=104"/>
 <link rel="stylesheet" href="css/themes.css?v=101"/>
 <link rel="stylesheet" href="css/pro.css?v=107"/>
 <link rel="stylesheet" href="css/pattern-finder.css?v=113"/>
+<link rel="stylesheet" href="css/front.css?v=3"/>
 
 <!-- Inline: apply saved theme before first paint to prevent flash -->
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
@@ -75,6 +76,49 @@
 <body>
 
 <!-- ── Loading screen ──────────────────────────────────────────────── -->
+<!-- ── Front page: pick a language. Shown on every visit, except when a
+     shared link already says which language and code to open. ── -->
+<div id="front" role="dialog" aria-modal="true" aria-label="Choose a language" hidden>
+  <button class="fp-side fp-java" data-lang="java" aria-label="Use Java">
+    <div class="fp-inner">
+      <div class="fp-kicker">Trace it in</div>
+      <div class="fp-word">Java</div>
+      <div class="fp-bar"></div>
+      <p class="fp-tag">Paste the solution exactly as LeetCode gives it. It runs on a <b>real JVM</b>, one step at a time.</p>
+<pre class="fp-code"><span class="k">void</span> dfs(<span class="k">char</span>[][] g, <span class="k">int</span> r, <span class="k">int</span> c) {
+  <span class="k">if</span> (r &lt; <span class="n">0</span> || r &gt;= g.length) <span class="k">return</span>;
+  <span class="k">if</span> (g[r][c] != <span class="s">'1'</span>) <span class="k">return</span>;
+  g[r][c] = <span class="s">'2'</span>;
+  dfs(g, r + <span class="n">1</span>, c);
+  dfs(g, r - <span class="n">1</span>, c);
+}</pre>
+      <span class="fp-cta">Start with Java <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </div>
+  </button>
+  <div class="fp-divider">
+    <div class="fp-tile">
+      <div class="fp-mark">Tr</div>
+      <div class="fp-name">TRA<span>CE</span></div>
+      <div class="fp-pick"><i class="l"></i>pick one<i class="r"></i></div>
+    </div>
+  </div>
+  <button class="fp-side fp-python" data-lang="python" aria-label="Use Python">
+    <div class="fp-inner">
+      <div class="fp-kicker">Trace it in</div>
+      <div class="fp-word">Python</div>
+      <div class="fp-bar"></div>
+      <p class="fp-tag">Paste the solution exactly as LeetCode gives it. It runs <b>right in your browser</b>, one step at a time.</p>
+<pre class="fp-code"><span class="k">def</span> dfs(self, g, r, c):
+    <span class="k">if</span> r &lt; <span class="n">0</span> <span class="k">or</span> r &gt;= len(g): <span class="k">return</span>
+    <span class="k">if</span> g[r][c] != <span class="s">'1'</span>: <span class="k">return</span>
+    g[r][c] = <span class="s">'2'</span>
+    self.dfs(g, r + <span class="n">1</span>, c)
+    self.dfs(g, r - <span class="n">1</span>, c)</pre>
+      <span class="fp-cta">Start with Python <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span>
+    </div>
+  </button>
+</div>
+
 <div id="loading">
   <div class="spin-ring"></div>
   <div class="load-label">
@@ -94,11 +138,10 @@
   </div>
 
   <div class="hm">
-    <label for="lang-sel">Language</label>
-    <select id="lang-sel">
-      <option value="python">Python</option>
-      <option value="java">Java</option>
-    </select>
+    <button id="lang-chip" class="lang-chip" title="Switch language" aria-label="Switch language">
+      <span class="lc-dot"></span><span class="lc-name">Python</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14l-3.5-3.5"/><path d="M20 16H6l3.5 3.5"/></svg>
+    </button>
   </div>
 
   <div class="hm">
@@ -245,7 +288,7 @@
       <div class="ob-logo">Tr</div>
       <div class="ob-header-text">
         <div class="ob-title">Welcome to TRACE</div>
-        <div class="ob-sub">Your Python algorithm visualizer</div>
+        <div class="ob-sub">Your Java and Python algorithm visualizer</div>
       </div>
       <button class="modal-close" data-close="onboard-modal">×</button>
     </div>
@@ -256,7 +299,7 @@
       <div class="ob-step active" data-step="1">
         <div class="ob-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 8 5 12 9 16"/><polyline points="15 8 19 12 15 16"/><line x1="13.5" y1="6" x2="10.5" y2="18"/></svg></div>
         <h3 class="ob-step-title">Write or pick your code</h3>
-        <p class="ob-step-desc">Paste any Python algorithm in the left panel, or pick a ready-made example from the <strong>Algorithm dropdown</strong> in the header.</p>
+        <p class="ob-step-desc">Paste any Java or Python algorithm in the left panel, or pick a ready-made example from the <strong>Algorithm dropdown</strong> in the header.</p>
         <div class="ob-hint">
           <span class="ob-hint-arrow">↑</span>
           Use the <strong>Array · Binary Search</strong> dropdown in the header to load built-in examples instantly.
@@ -551,7 +594,7 @@ or:  nums = [2,7,11,15]
 
 <!-- ── Bottom transport bar ────────────────────────────────────────── -->
 <nav id="bottom">
-  <button id="run" disabled><span class="ico-run"></span>RUN</button>
+  <button id="run" disabled><span class="ico-run"></span><span id="run-label">RUN</span></button>
   <button id="live-btn" title="Auto-run 1 s after you stop typing"><span class="ico-bolt"></span>LIVE</button>
   <div class="bdiv"></div>
   <div id="tgrp">
@@ -613,14 +656,14 @@ or:  nums = [2,7,11,15]
 <script src="js/java-runner.js?v=5"></script>
 <script src="js/java-instrument.js?v=7"></script> <!-- instrumentJava        -->
 <script src="js/java-driver.js?v=3"></script>    <!-- buildJavaDriver               -->
-<script src="js/lang.js?v=2"></script>           <!-- LANG, runJavaSource, setLang  -->
-<script src="js/runner.js?v=116"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
-<script src="js/controls.js?v=101"></script>    <!-- cm, tiEl, transport buttons, theme   -->
-<script src="js/pro-ui.js?v=114"></script>      <!-- snippets, modals, share, mobile      -->
+<script src="js/lang.js?v=4"></script>           <!-- LANG, runJavaSource, setLang  -->
+<script src="js/runner.js?v=117"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
+<script src="js/controls.js?v=102"></script>    <!-- cm, tiEl, transport buttons, theme   -->
+<script src="js/pro-ui.js?v=115"></script>      <!-- snippets, modals, share, mobile      -->
 <script src="js/pattern-finder.js?v=113"></script> <!-- Find Pattern: local reasoning engine -->
-<script src="js/onboard.js?v=100"></script>     <!-- new-user onboarding guide            -->
+<script src="js/onboard.js?v=101"></script>     <!-- new-user onboarding guide            -->
 <script src="js/shortcuts.js?v=100"></script>   <!-- keyboard shortcuts                   -->
-<script src="js/app.js?v=105"></script>         <!-- restoreState + initPyodide kickoff   -->
+<script src="js/app.js?v=106"></script>         <!-- restoreState + initPyodide kickoff   -->
 <!-- TEST.* stress harness — dev only. Never loads on the live site. -->
 <script>
 if(location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('test=1')){

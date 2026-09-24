@@ -94,11 +94,89 @@ async function runJavaSource(userCode, inputText){
            call_trees: buildCallTrees(jr.stdout), unsupported: [] };
 }
 
-function setLang(l){
+/* ── Choosing a language ──────────────────────────────────────────────
+   Every visit starts at the split-screen front page (#front). Picking a
+   side calls enterLang, which restores that language's own last session;
+   the header chip brings the front page back to switch. */
+
+window._langEntered = false;   // pro-ui.js does not autosave before this
+
+function setLang(l, opts){
+  opts = opts || {};
   window.LANG = l;
   if(window.Store) Store.set('lang', l);
   if(window._cm) window._cm.setOption('mode', l === 'java' ? 'text/x-java' : 'python');
-  document.body.classList.toggle('lang-java', l === 'java');
-  if(window.refreshTemplates) window.refreshTemplates();
-  if(window.setStat) setStat(l === 'java' ? 'Java ready' : 'Ready', 'ready');
+  document.body.classList.toggle('lang-java',   l === 'java');
+  document.body.classList.toggle('lang-python', l !== 'java');
+  if(window.refreshTemplates) window.refreshTemplates(opts.loadDefault !== false);
+  _syncRunButton();
 }
+
+/* RUN says which language it will run, in that language's colour, and is
+   usable as soon as that language can run: Java at once, Python once
+   Pyodide has loaded (the loading overlay shows until then). */
+function _syncRunButton(){
+  const java  = window.LANG === 'java';
+  const ready = java || (typeof pyodide !== 'undefined' && !!pyodide);
+  const run = document.getElementById('run');
+  if(run) run.disabled = !ready;
+  const label = document.getElementById('run-label');
+  if(label) label.textContent = java ? 'RUN JAVA' : 'RUN PYTHON';
+  const name = document.querySelector('#lang-chip .lc-name');
+  if(name) name.textContent = java ? 'Java' : 'Python';
+  document.getElementById('loading').classList.toggle('hidden', ready);
+  if(window.setStat) setStat(java ? 'Java ready' : (ready ? 'Ready' : 'Loading…'), ready ? 'ready' : null);
+}
+
+/* seed = { code, input } from a shared link; otherwise the language's own
+   last session, or its default template on a first visit. */
+function enterLang(l, seed){
+  if(window._langEntered && l === window.LANG && !seed){ hideFront(l); return; }
+
+  const code  = seed ? seed.code  : Store.get(l === 'java' ? 'lastCode.java'  : 'lastCode');
+  const input = seed ? seed.input : Store.get(l === 'java' ? 'lastInput.java' : 'lastInput');
+  const has   = typeof code === 'string' && code.trim().length > 0;
+
+  window._langEntered = false;             // a template load must not overwrite saved code
+  setLang(l, { loadDefault: !has });
+  if(has){
+    window._cm.setValue(code);
+    window._tiEl.value = typeof input === 'string' ? input : '';
+    if(window.refreshP) refreshP();
+  }
+  window._langEntered = true;
+  _syncRunButton();
+  hideFront(l);
+  if(window._maybeAutoOnboard) window._maybeAutoOnboard();
+  // a shared Java link that points at a step runs straight away;
+  // Python waits for Pyodide (runner.js)
+  if(l === 'java' && window._pendingStep != null) runCode();
+}
+
+function showFront(){
+  if(window._saveNow) window._saveNow();   // flush before the language can change
+  const f = document.getElementById('front');
+  f.hidden = false;
+  f.removeAttribute('data-chosen');
+  void f.offsetWidth;                      // restart the fade from visible
+  f.classList.remove('fp-out');
+  document.documentElement.classList.add('front-open');
+}
+
+function hideFront(l){
+  const f = document.getElementById('front');
+  document.documentElement.classList.remove('front-open');
+  if(f.hidden) return;
+  f.dataset.chosen = l;
+  f.classList.add('fp-out');
+  setTimeout(() => { if(f.classList.contains('fp-out')) f.hidden = true; }, 480);
+}
+
+document.querySelectorAll('#front .fp-side').forEach(b =>
+  b.addEventListener('click', () => enterLang(b.dataset.lang)));
+document.getElementById('lang-chip').addEventListener('click', showFront);
+// Esc returns to the app unchanged when the front page was opened to switch
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && window._langEntered && !document.getElementById('front').hidden)
+    hideFront(window.LANG);
+});

@@ -1,0 +1,214 @@
+/* ══════════════════════════════════════════════════════════════════════
+   front.css ─ The split-screen language chooser shown on every visit,
+   plus the language colours the app carries afterwards (header chip,
+   RUN button). The front page is its own fixed dark design and does not
+   follow the app theme.
+
+   Palette, taken from each language's own colours:
+     Java    #f89820 flame orange, #e76f00 deep orange, #d9480f ember red
+     Python  #3776ab blue, #ffd43b yellow
+   ══════════════════════════════════════════════════════════════════════ */
+
+body.lang-java   { --lang: #f89820; --lang-ink: #1a0f00; --lang-glow: rgba(248,152,32,.45); }
+body.lang-python { --lang: #3776ab; --lang-ink: #ffffff; --lang-glow: rgba(55,118,171,.55); }
+
+/* ── Front page shell ─────────────────────────────────────────────────── */
+#front {
+  position: fixed; inset: 0; z-index: 10000;
+  display: flex; background: #08080a; overflow: hidden;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  transition: opacity .45s ease;
+}
+#front[hidden] { display: none !important; }
+#front.fp-out { opacity: 0; pointer-events: none; }
+/* lock the page behind; <html> is the scroll container, so locking <body>
+   alone leaves its scrollbars showing as strips along the edges */
+html.front-open, html.front-open body { overflow: hidden; }
+
+.fp-side {
+  all: unset; box-sizing: border-box;
+  position: relative; flex: 1 1 0; min-width: 0;
+  display: flex; align-items: center; cursor: pointer;
+  transition: flex-grow .65s cubic-bezier(.2,.8,.2,1);
+  isolation: isolate;
+}
+.fp-java {
+  justify-content: flex-end;
+  background:
+    radial-gradient(1000px 680px at 30% 28%, rgba(248,152,32,.30), transparent 62%),
+    radial-gradient(760px 520px at 62% 92%, rgba(217,72,15,.26), transparent 60%),
+    #100a06;
+}
+.fp-python {
+  justify-content: flex-start;
+  background:
+    radial-gradient(1000px 680px at 70% 28%, rgba(55,118,171,.40), transparent 62%),
+    radial-gradient(640px 460px at 38% 92%, rgba(255,212,59,.17), transparent 60%),
+    #060a12;
+}
+
+/* faint dot grid: the canvas an algorithm gets traced on */
+.fp-side::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1.4px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+          mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+}
+/* dim the side you are NOT pointing at */
+.fp-side::after {
+  content: ''; position: absolute; inset: 0; background: #000; opacity: 0;
+  pointer-events: none; transition: opacity .5s ease; z-index: 3;
+}
+#front:has(.fp-java:hover)   .fp-python::after,
+#front:has(.fp-python:hover) .fp-java::after { opacity: .42; }
+#front:not(.fp-out) .fp-side:hover { flex-grow: 1.22; }
+
+.fp-inner {
+  position: relative; z-index: 2;
+  width: min(580px, 100%);
+  padding: 0 clamp(88px, 8vw, 140px) 0 clamp(28px, 5vw, 72px);
+  display: flex; flex-direction: column; gap: 18px;
+}
+.fp-python .fp-inner { padding: 0 clamp(28px, 5vw, 72px) 0 clamp(88px, 8vw, 140px); }
+
+.fp-kicker {
+  font: 700 12px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: .22em; text-transform: uppercase; color: rgba(255,255,255,.5);
+}
+/* The gradient is clipped to the text, and any glyph past the element's
+   box gets no gradient and renders invisible, so the box must hug the
+   text (max-content) and the size must leave room for "Python". */
+.fp-word {
+  width: max-content; max-width: 100%;
+  font-weight: 800; letter-spacing: -.045em; line-height: .9;
+  font-size: clamp(56px, 7vw, 124px);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding: 0 .04em .06em 0;
+}
+.fp-java   .fp-word { background-image: linear-gradient(170deg, #ffd08a 0%, #f89820 42%, #e76f00 72%, #d9480f 100%); }
+.fp-python .fp-word { background-image: linear-gradient(170deg, #8cc4f2 0%, #4b8bbe 40%, #3776ab 70%, #ffd43b 130%); }
+
+.fp-bar { width: 64px; height: 5px; border-radius: 3px; }
+.fp-java   .fp-bar { background: linear-gradient(90deg, #f89820, #d9480f); }
+.fp-python .fp-bar { background: linear-gradient(90deg, #3776ab 50%, #ffd43b 50%); }
+
+.fp-tag {
+  margin: 0; max-width: 34ch;
+  font-size: clamp(14px, 1.15vw, 17px); line-height: 1.55; color: rgba(255,255,255,.72);
+}
+.fp-tag b { color: #fff; font-weight: 700; }
+
+.fp-code {
+  margin: 6px 0 0; padding: 18px 20px;
+  background: rgba(0,0,0,.42); border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px; overflow: hidden;
+  font: 500 13px/1.72 'JetBrains Mono', ui-monospace, monospace;
+  color: rgba(255,255,255,.82); white-space: pre;
+  box-shadow: 0 24px 60px rgba(0,0,0,.45);
+  transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .5s, box-shadow .5s;
+}
+.fp-code .k { font-weight: 700; }
+.fp-code .n { color: #c3e88d; }
+.fp-code .s { color: #f5c07a; }
+.fp-java   .fp-code .k { color: #ffab4a; }
+.fp-python .fp-code .k { color: #7fb8ea; }
+.fp-python .fp-code .s { color: #ffd43b; }
+.fp-side:hover .fp-code, .fp-side:focus-visible .fp-code { transform: translateY(-4px); }
+.fp-java:hover .fp-code   { border-color: rgba(248,152,32,.45); box-shadow: 0 28px 70px rgba(248,152,32,.16); }
+.fp-python:hover .fp-code { border-color: rgba(55,118,171,.6);  box-shadow: 0 28px 70px rgba(55,118,171,.22); }
+
+.fp-cta {
+  align-self: flex-start; margin-top: 6px;
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 46px; padding: 0 22px; border-radius: 11px;
+  font: 800 13px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: .14em; text-transform: uppercase;
+  transition: transform .2s ease, box-shadow .3s ease;
+}
+.fp-cta svg { width: 16px; height: 16px; transition: transform .25s ease; }
+.fp-java   .fp-cta { background: #f89820; color: #1a0f00; box-shadow: 0 10px 30px rgba(248,152,32,.35); }
+.fp-python .fp-cta { background: #3776ab; color: #fff;    box-shadow: 0 10px 30px rgba(55,118,171,.45); }
+.fp-side:hover .fp-cta svg { transform: translateX(4px); }
+.fp-side:focus-visible .fp-cta { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* ── The middle tile rides on the divider, so it follows it on hover ── */
+.fp-divider {
+  position: relative; flex: 0 0 1px; z-index: 5;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.16) 30%, rgba(255,255,255,.16) 70%, transparent);
+}
+.fp-tile {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 148px; padding: 22px 0 18px; border-radius: 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  border: 1px solid transparent;
+  background-image: linear-gradient(#0c0c10, #0c0c10), linear-gradient(135deg, #f89820, #d9480f 35%, #3776ab 65%, #ffd43b);
+  background-origin: border-box; background-clip: padding-box, border-box;
+  box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 6px rgba(8,8,10,.9);
+  pointer-events: none;
+}
+.fp-mark {
+  width: 50px; height: 50px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  background: #00c9a7; color: #000;
+  font: 900 21px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: -1px;
+}
+.fp-name { font: 900 15px/1 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .28em; color: #fff; padding-left: .28em; }
+.fp-name span { color: #00c9a7; }
+.fp-pick {
+  display: flex; align-items: center; gap: 7px;
+  font: 700 9.5px/1 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.55);
+}
+.fp-pick i { width: 0; height: 0; border-style: solid; }
+.fp-pick i.l { border-width: 4px 5px 4px 0; border-color: transparent #f89820 transparent transparent; }
+.fp-pick i.r { border-width: 4px 0 4px 5px; border-color: transparent transparent transparent #4b8bbe; }
+
+/* ── Choosing: the picked side sweeps across, then the page fades ────── */
+#front.fp-out[data-chosen="java"]   .fp-java,
+#front.fp-out[data-chosen="python"] .fp-python { flex-grow: 14; }
+#front.fp-out .fp-tile { opacity: 0; transition: opacity .25s ease; }
+
+/* ── Phones: stack the halves, Java on top ───────────────────────────── */
+@media (max-width: 760px) {
+  #front { flex-direction: column; }
+  .fp-side { justify-content: center !important; align-items: center; }
+  .fp-inner, .fp-python .fp-inner {
+    width: 100%; padding: 0 26px; gap: 11px;
+    align-items: center; text-align: center;
+  }
+  .fp-java .fp-inner   { padding-bottom: 54px; }
+  .fp-python .fp-inner { padding-top: 54px; }
+  .fp-word { font-size: clamp(52px, 17vw, 84px); }
+  .fp-tag { font-size: 13.5px; max-width: 30ch; }
+  .fp-code { display: none; }
+  .fp-cta { align-self: center; height: 42px; font-size: 12px; }
+  .fp-kicker { font-size: 10.5px; }
+  .fp-divider { background: linear-gradient(90deg, transparent, rgba(255,255,255,.16) 30%, rgba(255,255,255,.16) 70%, transparent); }
+  .fp-tile { width: auto; flex-direction: row; padding: 10px 16px; gap: 10px; border-radius: 16px; }
+  .fp-mark { width: 34px; height: 34px; font-size: 15px; border-radius: 9px; }
+  .fp-name { font-size: 13px; }
+  .fp-pick { display: none; }
+  #front:not(.fp-out) .fp-side:hover { flex-grow: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #front, .fp-side, .fp-code, .fp-cta, .fp-cta svg, .fp-side::after { transition: none !important; }
+}
+
+/* ── In the app: which language RUN will use ─────────────────────────── */
+.lang-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 28px; padding: 0 11px 0 10px; border-radius: 7px;
+  background: #161616; border: 1px solid #2a2a2a; color: rgba(255,255,255,.88);
+  font: 800 11px/1 var(--mono); letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.lang-chip:hover { border-color: var(--lang, #444); background: #1c1c1c; }
+.lang-chip .lc-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--lang, #888); box-shadow: 0 0 10px var(--lang-glow, transparent);
+}
+.lang-chip svg { width: 13px; height: 13px; opacity: .55; }
+
+body.lang-java #run, body.lang-python #run { background: var(--lang); color: var(--lang-ink); }

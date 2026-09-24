@@ -80,7 +80,6 @@ header {
   text-transform: uppercase; color: rgba(255,255,255,.4); font-weight: 700;
   white-space: nowrap;
 }
-#lang-sel,
 #tmpl {
   background: #161616;
   color: rgba(255,255,255,.7);
@@ -95,11 +94,8 @@ header {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#lang-sel:focus,
 #tmpl:focus { border-color: var(--accent); outline: none; }
-#lang-sel:hover,
 #tmpl:hover { border-color: #444; }
-#lang-sel { min-width: 108px; }
 
 /* ── Status indicator (dot + label) ───────────────────────────────── */
 #status {

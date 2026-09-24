@@ -18,19 +18,13 @@
     document.getElementById('sval').textContent = sp + '×';
   }
 
-  // URL hash (shared link) takes highest priority
-  const fromHash = tryLoadFromHash();
-  if(fromHash){ markSaved(); return; }
+  // A shared link already names its language and code: open it directly.
+  const shared = tryLoadFromHash();
+  if(shared){ enterLang(shared.lang, { code: shared.code, input: shared.input }); markSaved(); return; }
 
-  // Otherwise restore last code / input from localStorage
-  const lastCode  = Store.get('lastCode');
-  const lastInput = Store.get('lastInput');
-  if(typeof lastCode === 'string' && lastCode.trim()){
-    cm.setValue(lastCode);
-    tiEl.value = (typeof lastInput === 'string') ? lastInput : '';
-    refreshP();
-    Toast.show('Restored your previous session', 'success', 1800);
-  }
+  // Otherwise every visit starts at the front page. The chosen language's
+  // last session is restored when it is picked (enterLang in lang.js).
+  showFront();
   markSaved();
 })();
 

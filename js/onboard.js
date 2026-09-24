@@ -113,13 +113,16 @@
   // ── Header button ──────────────────────────────────────────────────
   $('btn-onboard').addEventListener('click', openOnboard);
 
-  // ── Auto-show on genuine first visit (no prior code saved) ────────
-  const alreadySeen = Store.get('ob_seen');
-  const hasCode     = !!Store.get('lastCode');
-  if(!alreadySeen && !hasCode){
-    // slight delay so the app finishes painting first
-    setTimeout(openOnboard, 800);
-  }
+  // ── Auto-show on a genuine first visit, once a language is picked ──
+  // Called by enterLang (lang.js) so the guide never opens over the front page.
+  let _autoChecked = false;
+  window._maybeAutoOnboard = function(){
+    if(_autoChecked) return;
+    _autoChecked = true;
+    const alreadySeen = Store.get('ob_seen');
+    const hasCode     = !!(Store.get('lastCode') || Store.get('lastCode.java'));
+    if(!alreadySeen && !hasCode) setTimeout(openOnboard, 700);
+  };
 
   // Expose for mobile menu / shortcuts if needed
   window._openOnboard = openOnboard;

@@ -18,15 +18,28 @@ let _saveTmr = null;
 function markSaving(){ SaveStatus.className='save-status saving'; SaveStatus.textContent='Saving…'; }
 function markSaved(){  SaveStatus.className='save-status saved';  SaveStatus.textContent='Saved'; }
 
+/* Each language keeps its own last session. Python keeps the original keys
+   so existing users' saved code survives the upgrade. Nothing is saved
+   until a language has been entered from the front page: until then the
+   editor only holds a placeholder template. */
+function _saveKeys(){
+  return window.LANG === 'java' ? ['lastCode.java', 'lastInput.java'] : ['lastCode', 'lastInput'];
+}
+function saveNow(){
+  clearTimeout(_saveTmr);
+  if(!window._langEntered) return;
+  const [ck, ik] = _saveKeys();
+  Store.set(ck, cm.getValue());
+  Store.set(ik, tiEl.value);
+  Store.set('lastTemplate', document.getElementById('tmpl').value);
+  markSaved();
+}
+window._saveNow = saveNow;
+
 function autoSave(){
   markSaving();
   clearTimeout(_saveTmr);
-  _saveTmr = setTimeout(()=>{
-    Store.set('lastCode',     cm.getValue());
-    Store.set('lastInput',    tiEl.value);
-    Store.set('lastTemplate', document.getElementById('tmpl').value);
-    markSaved();
-  }, 350);
+  _saveTmr = setTimeout(saveNow, 350);
 }
 
 cm.on('change', autoSave);
@@ -224,7 +237,7 @@ function utf8b64(str){ return btoa(unescape(encodeURIComponent(str))); }
 function b64utf8(s){ try { return decodeURIComponent(escape(atob(s))); } catch { return null; } }
 
 function buildShareURL(){
-  const data = { c:cm.getValue(), i:tiEl.value };
+  const data = { c:cm.getValue(), i:tiEl.value, l:window.LANG || 'python' };
   // Carry the step you're looking at, so "see step 47" survives the link.
   if(snaps.length && cur > 0) data.p = cur;
   const hash = utf8b64(JSON.stringify(data));
@@ -239,19 +252,17 @@ function tryLoadFromHash(){
   try {
     const obj = JSON.parse(decoded);
     if(typeof obj.c === 'string'){
-      cm.setValue(obj.c);
-      tiEl.value = obj.i || '';
-      refreshP();
-      // Step is applied after the trace runs (runner.js) — snaps is empty now.
+      // Step is applied after the trace runs (runner.js); snaps is empty now.
       window._pendingStep = (typeof obj.p === 'number' && obj.p > 0) ? obj.p : null;
       Toast.show(window._pendingStep
-        ? `Shared link — jumping to step ${window._pendingStep}`
+        ? `Shared link, jumping to step ${window._pendingStep}`
         : 'Loaded from shared URL');
       history.replaceState(null, '', location.pathname);
-      return true;
+      // Links made before Java support carry no language: those were Python.
+      return { code: obj.c, input: obj.i || '', lang: obj.l === 'java' ? 'java' : 'python' };
     }
   } catch {}
-  return false;
+  return null;
 }
 
 document.getElementById('btn-share').addEventListener('click', ()=>{
