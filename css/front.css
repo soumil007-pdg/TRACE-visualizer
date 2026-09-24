@@ -227,3 +227,16 @@ body.lang-java .ch-head, body.lang-python .ch-head { box-shadow: inset 2px 0 0 v
    select copes by truncating, but the chip cannot, so its slot must not
    shrink or it spills over the Example label on narrower windows. */
 .hm-lang { flex-shrink: 0; }
+
+/* The TRACE tile previews the language you are pointing at: orange over
+   Java, blue over Python, teal when neither. Keyboard focus counts as
+   pointing, and the colour holds while the chosen side sweeps out. Both
+   shades carry the black "Tr" at 8:1 or better. */
+.fp-mark, .fp-name span { transition: background-color .35s ease, color .35s ease; }
+.fp-tile { transition: box-shadow .45s ease; }
+#front:has(.fp-java:hover) .fp-mark,   #front:has(.fp-java:focus-visible) .fp-mark,   #front[data-chosen="java"] .fp-mark   { background: #f89820; }
+#front:has(.fp-java:hover) .fp-name span, #front:has(.fp-java:focus-visible) .fp-name span, #front[data-chosen="java"] .fp-name span { color: #f89820; }
+#front:has(.fp-python:hover) .fp-mark, #front:has(.fp-python:focus-visible) .fp-mark, #front[data-chosen="python"] .fp-mark { background: #5aa9e6; }
+#front:has(.fp-python:hover) .fp-name span, #front:has(.fp-python:focus-visible) .fp-name span, #front[data-chosen="python"] .fp-name span { color: #5aa9e6; }
+#front:has(.fp-java:hover) .fp-tile   { box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 6px rgba(8,8,10,.9), 0 0 46px rgba(248,152,32,.32); }
+#front:has(.fp-python:hover) .fp-tile { box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 6px rgba(8,8,10,.9), 0 0 46px rgba(90,169,230,.36); }
