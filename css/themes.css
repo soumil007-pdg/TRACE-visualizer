@@ -259,3 +259,96 @@ html.lang-python[data-theme="dark"] .CodeMirror-linebackground.hl { background: 
 /* The TRACE mark takes the language colour too (base.css paints it with
    --accent). Only the front page tile stays teal: no language is chosen
    there yet. */
+
+/* ══════════════════════════════════════════════════════════════════════
+   LANGUAGE THEMES: LIGHT
+   Same language identity on paper. Bright accents that read well on dark
+   are unreadable on white (Java orange as text is about 2:1, Python
+   yellow as an outline nearly invisible), so each colour is a deeper shade
+   of itself: burnt orange, a darker cup blue, Python blue, mustard gold.
+   --ink stays dark, as in the light base: it is the bold border and
+   shadow colour. Header, panel headers and bottom bar stay dark, as they
+   always were in light mode. Every text pair WCAG AA, checked before
+   shipping. A mid-tone accent cannot reach 4.5:1 with both black and
+   white text, so grid cells on the accent switch to white text here.
+   ══════════════════════════════════════════════════════════════════════ */
+html.lang-java[data-theme="light"] {
+  --cream:  #f7f1e9;  --white:  #fffdf9;
+  --ink:    #2b1d12;  --text:   #1f140b;
+  --muted:  #6e5a48;  --gray:   #8a735e;
+  --accent: #b35300;  --pink:   #1f6fd1;
+  --blue:   #0e7c66;  --green:  #15803d;
+  --red:    #c81e1e;  --purple: #6d28d9;
+  --chrome: #0d0906;  --chrome-2: #150e09;  --chrome-line: #2a1d14;
+  --ctl-bg: #1c140e;  --ctl-line: #3b2a1e;
+}
+html.lang-python[data-theme="light"] {
+  --cream:  #eef3f9;  --white:  #ffffff;
+  --ink:    #0f1c30;  --text:   #0b1526;
+  --muted:  #4b5d78;  --gray:   #6c7f9c;
+  --accent: #2f6fa8;  --pink:   #a37800;
+  --blue:   #0e7c66;  --green:  #15803d;
+  --red:    #c81e1e;  --purple: #6d28d9;
+  --chrome: #060a13;  --chrome-2: #0a1120;  --chrome-line: #16243d;
+  --ctl-bg: #0f1a2d;  --ctl-line: #1f3352;
+}
+html.lang-java[data-theme="light"] .gc.other,
+html.lang-python[data-theme="light"] .gc.other { color: #fff; }
+html.lang-java[data-theme="light"] #tinput   { background: #fdf8f2; color: var(--text); }
+html.lang-python[data-theme="light"] #tinput { background: #f5f8fc; color: var(--text); }
+/* the active call's name was a hard-coded teal in light mode */
+html.lang-java[data-theme="light"] .csl-row.csl-active .csl-fn,
+html.lang-python[data-theme="light"] .csl-row.csl-active .csl-fn { color: var(--accent); }
+
+/* ── Java editor, light ── */
+html.lang-java[data-theme="light"] .CodeMirror            { background: #fdf8f2 !important; color: #1f140b !important; }
+html.lang-java[data-theme="light"] .CodeMirror-gutters    { background: #f4ebe0 !important; border-right-color: #e3d3c2 !important; }
+html.lang-java[data-theme="light"] .CodeMirror-linenumber { color: #937c67 !important; }
+html.lang-java[data-theme="light"] .cm-def,
+html.lang-java[data-theme="light"] .cm-variable           { color: #1f140b !important; }
+html.lang-java[data-theme="light"] .cm-operator           { color: #5c4a3a !important; }
+html.lang-java[data-theme="light"] .cm-comment            { color: #8a735e !important; font-style: italic; }
+html.lang-java[data-theme="light"] .cm-keyword            { color: #b35300 !important; font-weight: 700; }
+html.lang-java[data-theme="light"] .cm-type,
+html.lang-java[data-theme="light"] .cm-variable-3         { color: #9a4a00 !important; }
+html.lang-java[data-theme="light"] .cm-number             { color: #15803d !important; font-weight: 700; }
+html.lang-java[data-theme="light"] .cm-string             { color: #1f6fd1 !important; }
+html.lang-java[data-theme="light"] .cm-atom,
+html.lang-java[data-theme="light"] .cm-builtin            { color: #6d28d9 !important; }
+html.lang-java[data-theme="light"] .CodeMirror-selected   { background: rgba(179,83,0,.18) !important; }
+html.lang-java[data-theme="light"] .CodeMirror-linebackground.hl { background: rgba(179,83,0,.10) !important; }
+
+/* ── Python editor, light ── */
+html.lang-python[data-theme="light"] .CodeMirror            { background: #f5f8fc !important; color: #0b1526 !important; }
+html.lang-python[data-theme="light"] .CodeMirror-gutters    { background: #e9eff7 !important; border-right-color: #d3deec !important; }
+html.lang-python[data-theme="light"] .CodeMirror-linenumber { color: #7d8fa9 !important; }
+html.lang-python[data-theme="light"] .cm-def,
+html.lang-python[data-theme="light"] .cm-variable           { color: #0b1526 !important; }
+html.lang-python[data-theme="light"] .cm-operator           { color: #3d4f69 !important; }
+html.lang-python[data-theme="light"] .cm-comment            { color: #6c7f9c !important; font-style: italic; }
+html.lang-python[data-theme="light"] .cm-keyword            { color: #2f6fa8 !important; font-weight: 700; }
+html.lang-python[data-theme="light"] .cm-builtin            { color: #1f5f99 !important; }
+html.lang-python[data-theme="light"] .cm-number             { color: #15803d !important; font-weight: 700; }
+html.lang-python[data-theme="light"] .cm-string             { color: #8a6400 !important; }
+html.lang-python[data-theme="light"] .cm-atom               { color: #6d28d9 !important; }
+html.lang-python[data-theme="light"] .CodeMirror-selected   { background: rgba(47,111,168,.18) !important; }
+html.lang-python[data-theme="light"] .CodeMirror-linebackground.hl { background: rgba(47,111,168,.10) !important; }
+
+/* ── Light / dark toggle: shows the mode you would switch TO ── */
+#btn-mode .ic-moon { display: none; }
+html[data-theme="light"] #btn-mode .ic-sun  { display: none; }
+html[data-theme="light"] #btn-mode .ic-moon { display: inline; }
+
+/* The header and bottom bar are dark in BOTH modes, so inside them the
+   accent is always the bright dark-surface shade (--lang-text, front.css).
+   The light-mode accent is tuned for paper and reads about 4:1 on the
+   near-black bars. Overriding the variable on the bar itself fixes every
+   button, the status dot, the transport controls and the logo at once. */
+html.lang-java header,  html.lang-python header,
+html.lang-java #bottom, html.lang-python #bottom { --accent: var(--lang-text); }
+
+/* Playing: the Play button fills with the "changed" colour (--pink). Its
+   white icon read 1.4:1 on Python's yellow and 2.4:1 on Java's light blue
+   (the old teal theme was already 2.7:1). A black icon clears the 3:1
+   needed for an icon on every language theme, light and dark. */
+html.lang-java .tbtn.play.on, html.lang-python .tbtn.play.on { color: #000; }

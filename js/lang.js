@@ -190,3 +190,30 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && window._langEntered && !document.getElementById('front').hidden)
     hideFront(window.LANG);
 });
+
+/* ── Light / dark ──────────────────────────────────────────────────────
+   Each language has a light and a dark version (themes.css). The head
+   script picks the starting mode before first paint; this switches it.
+   Until someone chooses, the app keeps following the computer's setting. */
+function setMode(m, remember){
+  document.documentElement.dataset.theme = m;
+  if(remember){ try { localStorage.setItem('mode', m); } catch(e){} }
+  if(window._cm) window._cm.refresh();
+  // the recursion tree reads its colours at render time
+  if(typeof snaps !== 'undefined' && snaps.length && typeof render === 'function') render();
+}
+function toggleMode(){
+  setMode(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light', true);
+}
+window.toggleMode = toggleMode;
+document.getElementById('btn-mode').addEventListener('click', toggleMode);
+document.getElementById('m-mode').addEventListener('click', () => {
+  toggleMode();
+  const d = document.getElementById('mobile-drawer'); if(d) d.classList.remove('show');
+});
+if(window.matchMedia){
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  const follow = e => { let saved = null; try { saved = localStorage.getItem('mode'); } catch(_){}
+                        if(saved !== 'light' && saved !== 'dark') setMode(e.matches ? 'dark' : 'light', false); };
+  if(mq.addEventListener) mq.addEventListener('change', follow);
+}

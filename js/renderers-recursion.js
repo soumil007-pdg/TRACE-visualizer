@@ -337,12 +337,13 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
   const AC  = _acc;
   const ACa = a => `rgba(${_rgb.join(',')},${a})`;
   const ACl = '#' + _rgb.map(v => Math.round(v + (255 - v) * 0.55).toString(16).padStart(2, '0')).join('');
+  const ACd = '#' + _rgb.map(v => Math.round(v * 0.55).toString(16).padStart(2, '0')).join('');   // darker, for text on light
   const P = isLight ? {
-    eA:'#00897b', eF:'#16a34a', eP:'#dc2626', eM:'#b45309', eDef:'rgba(70,40,180,0.55)',
+    eA:AC, eF:'#16a34a', eP:'#dc2626', eM:'#b45309', eDef:'rgba(70,40,180,0.55)',
     gL:'rgba(0,0,0,0.06)', gT:'rgba(60,60,120,0.3)',
-    fA:['#00897b','0.55'], fPS:['#5c35c2','0.3'], fF:['#16a34a','0.6'], fP:['#dc2626','0.5'], fM:['#b45309','0.55'],
+    fA:[AC,'0.55'], fPS:['#5c35c2','0.3'], fF:['#16a34a','0.6'], fP:['#dc2626','0.5'], fM:['#b45309','0.55'],
     S:{
-      active: {bg:'rgba(0,160,130,0.32)', stroke:'#00897b',              sw:3,  acc:'#00897b',op:1,   f:`filter="url(#svgt-glow)"`},
+      active: {bg:ACa(0.26), stroke:AC,              sw:3,  acc:AC,op:1,   f:`filter="url(#svgt-glow)"`},
       path:   {bg:'rgba(99,55,200,0.10)', stroke:'rgba(80,40,200,0.75)', sw:2,  acc:'#5c35c2',op:0.5, f:`filter="url(#svgt-pshadow)"`},
       found:  {bg:'rgba(22,163,74,0.15)', stroke:'#16a34a',              sw:2.5,acc:'#16a34a',op:0.8, f:`filter="url(#svgt-gfound)"`},
       pruned: {bg:'rgba(220,38,38,0.09)', stroke:'rgba(200,30,30,0.6)',  sw:1.5,acc:'#dc2626',op:0.65,f:`filter="url(#svgt-gpruned)"`},
@@ -350,14 +351,14 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
       done:   {bg:'rgba(22,163,74,0.07)', stroke:'rgba(22,163,74,0.35)', sw:1.5,acc:'#16a34a',op:0.4, f:''},
       pending:{bg:'rgba(0,0,0,0.025)',    stroke:'rgba(0,0,0,0.09)',     sw:1,  acc:'rgba(80,80,110,0.2)',op:0,  f:''},
     },
-    dot:{active:'#00897b',path:'#5c35c2',found:'#16a34a',pruned:'#dc2626',memo:'#b45309',done:'#16a34a',pending:'rgba(100,100,130,0.35)'},
+    dot:{active:AC,path:'#5c35c2',found:'#16a34a',pruned:'#dc2626',memo:'#b45309',done:'#16a34a',pending:'rgba(100,100,130,0.35)'},
     dotN:(st)=>st==='pending'?'rgba(70,70,100,0.4)':'#fff',
-    fn:{active:'#004d40',path:'#3d1a9b',found:'#14532d',pruned:'#991b1b',memo:'#78350f',done:'#14532d',pending:'rgba(60,60,100,0.45)'},
+    fn:{active:ACd,path:'#3d1a9b',found:'#14532d',pruned:'#991b1b',memo:'#78350f',done:'#14532d',pending:'rgba(60,60,100,0.45)'},
     arg:(st)=>st==='pending'?'rgba(60,60,100,0.35)':'rgba(10,10,30,0.90)',
     ret:(st)=>st==='found'?'#16a34a':st==='pruned'?'#dc2626':'#16a34a',
-    bA:['#00897b','#fff'], bF:['rgba(22,163,74,0.18)','#16a34a'],
+    bA:[AC,'#fff'], bF:['rgba(22,163,74,0.18)','#16a34a'],
     bP:['rgba(220,38,38,0.14)','#dc2626'], bM:['rgba(180,110,0,0.16)','#b45309'], bD:['rgba(22,163,74,0.15)','#16a34a'],
-    cHi:(st)=>st==='active'?'rgba(0,137,123,0.4)':st==='path'?'rgba(80,40,200,0.25)':st==='done'?'rgba(22,163,74,0.3)':'rgba(80,40,200,0.15)',
+    cHi:(st)=>st==='active'?ACa(0.4):st==='path'?'rgba(80,40,200,0.25)':st==='done'?'rgba(22,163,74,0.3)':'rgba(80,40,200,0.15)',
     cDf:'rgba(0,0,0,0.04)', cDS:'rgba(0,0,0,0.08)', cDT:'rgba(30,30,60,0.7)',
   } : {
     eA:AC, eF:'#22c55e', eP:'#ef4444', eM:'#fbbf24', eDef:'#8b5cf6',
