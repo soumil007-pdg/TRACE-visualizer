@@ -122,56 +122,6 @@
 [data-theme="ember"] .CodeMirror-selected { background: rgba(136,192,208,.22) !important; }
 [data-theme="ember"] .CodeMirror-linebackground.hl { background: rgba(136,192,208,.13) !important; }
 
-/* ── Theme picker swatches in header ─────────────────────────────── */
-#theme-picker { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
-.tsw {
-  width: 18px; height: 18px;
-  border: 2px solid transparent;
-  border-radius: 50%;
-  cursor: pointer; flex-shrink: 0;
-  transition: transform .12s, border-color .12s;
-  position: relative;
-}
-.tsw:hover { transform: scale(1.2); }
-.tsw.active { border-color: rgba(255,255,255,.7); transform: scale(1.15); }
-
-/* Responsive theme picker (compressed on medium screens) */
-@media (max-width: 1200px) and (min-width: 881px) {
-  #theme-picker { gap: 3px; }
-  .tsw { width: 14px; height: 14px; border-width: 1.5px; }
-  .tsw:hover { transform: scale(1.15); }
-  .tsw.active { transform: scale(1.1); }
-}
-
-@media (max-width: 880px) {
-  #theme-picker { gap: 4px; }
-  .tsw { width: 16px; height: 16px; }
-}
-.tsw[data-t="light"]  { background: #f3f1ed; border-color: rgba(255,255,255,.3); }
-.tsw[data-t="dark"]   { background: #00c9a7; border: 2px solid rgba(255,255,255,.15); }
-.tsw[data-t="night"]  { background: linear-gradient(135deg, #0f172a 50%, #38bdf8 50%); }
-.tsw[data-t="dusk"]   { background: linear-gradient(135deg, #1e293b 50%, #818cf8 50%); }
-.tsw[data-t="ember"]  { background: linear-gradient(135deg, #2e3440 50%, #88c0d0 50%); }
-
-/* ── Toggle button (sun/moon) ────────────────────────────────────── */
-#themetgl {
-  background: rgba(0, 201, 167, 0.12);
-  border: 1.5px solid var(--accent);
-  color: var(--accent);
-  font-size: 15px; line-height: 1;
-  width: 32px; height: 32px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all .15s;
-  flex-shrink: 0; padding: 0; border-radius: 4px;
-  box-shadow: inset 0 0 8px rgba(0, 201, 167, 0.15);
-}
-#themetgl:hover {
-  border-color: var(--accent);
-  color: var(--white);
-  background: var(--accent);
-  box-shadow: 0 0 12px rgba(0, 201, 167, 0.4);
-}
-
 /* ══════════════════════════════════════════════════════════════════
    DARK-THEME RENDERER OVERRIDES
    These ensure all visualizer cards, chips, dict tables, etc. use the
@@ -217,3 +167,96 @@
   { border-color: var(--ink); color: var(--gray); }
 [data-theme="dark"] .vb h3::after, [data-theme="night"] .vb h3::after, [data-theme="dusk"] .vb h3::after, [data-theme="ember"] .vb h3::after
   { background: var(--ink); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   LANGUAGE THEMES
+   One theme per language instead of a picker. Both build on the dark base
+   (data-theme="dark", so every dark-mode renderer rule above still applies)
+   and replace its palette from a class on <html>.
+
+   The class must sit on <html>, not <body>: the --tonal-fg-* tokens are
+   derived from --accent / --pink ON <html>, and would stay computed from
+   the old colours if the override lived lower down.
+
+   Each language takes its own logo's pair: a primary accent, and its
+   complement as --pink, which is the "just changed" highlight everywhere
+   (changed cells, bars, pointers, queue front, strings in the editor).
+   A complementary pair is the strongest pop there is.
+     Java    orange #f89820  +  cup blue #5ab0ff   on warm espresso darks
+     Python  blue   #5aa9e6  +  yellow   #ffd43b   on deep navy
+   Every text/background pair is WCAG AA (4.5:1; 3:1 for comments and
+   line numbers), checked before shipping.
+   ══════════════════════════════════════════════════════════════════════ */
+html.lang-java[data-theme="dark"] {
+  --cream:  #120c08;  --white:  #1a120c;
+  --ink:    #3b2a1e;  --text:   #f7ede3;
+  --muted:  #c9b6a3;  --gray:   #978069;
+  --accent: #f89820;  --pink:   #5ab0ff;
+  --blue:   #6ee7c8;  --green:  #4ade80;   /* --blue is mint here, see below */
+  --red:    #f87171;  --purple: #d8b4fe;
+  --chrome: #0d0906;  --chrome-2: #150e09;  --chrome-line: #2a1d14;
+  --ctl-bg: #1c140e;  --ctl-line: #3b2a1e;
+}
+html.lang-python[data-theme="dark"] {
+  --cream:  #070c16;  --white:  #0d1526;
+  --ink:    #1f3352;  --text:   #e8f0fa;
+  --muted:  #a3b6cf;  --gray:   #7187a6;
+  --accent: #5aa9e6;  --pink:   #ffd43b;
+  --blue:   #6ee7c8;  --green:  #7ee787;
+  --red:    #f87171;  --purple: #c4b5fd;
+  --chrome: #060a13;  --chrome-2: #0a1120;  --chrome-line: #16243d;
+  --ctl-bg: #0f1a2d;  --ctl-line: #1f3352;
+}
+
+/* --blue colours grid 1-cells and map keys. A literal blue collided in
+   both themes: with Python's blue accent (visited 2s vs land 1s, two shades
+   of one hue) and with Java's blue "changed" outline. Mint is a third hue
+   distinct from orange, blue and yellow; 12:1 on the cards either way. */
+
+/* The chrome (header, panel headers, bottom bar, header controls) was
+   hard-coded near-black; it takes the language's own darkest tones. */
+html.lang-java header,   html.lang-python header,
+html.lang-java #bottom,  html.lang-python #bottom  { background: var(--chrome); }
+html.lang-java #bottom,  html.lang-python #bottom  { border-top-color: var(--chrome-line); }
+html.lang-java .ch-head, html.lang-python .ch-head { background: var(--chrome-2); border-bottom-color: var(--chrome-line); }
+html.lang-java #tmpl,       html.lang-python #tmpl,
+html.lang-java .lang-chip,  html.lang-python .lang-chip { background: var(--ctl-bg); border-color: var(--ctl-line); }
+
+/* ── Java editor ── */
+html.lang-java[data-theme="dark"] .CodeMirror            { background: #120c08 !important; color: #f7ede3 !important; }
+html.lang-java[data-theme="dark"] .CodeMirror-gutters    { background: #1a120c !important; border-right-color: #3b2a1e !important; }
+html.lang-java[data-theme="dark"] .CodeMirror-linenumber { color: #846c59 !important; }
+html.lang-java[data-theme="dark"] .cm-def,
+html.lang-java[data-theme="dark"] .cm-variable           { color: #f7ede3 !important; }
+html.lang-java[data-theme="dark"] .cm-operator           { color: #c9b6a3 !important; }
+html.lang-java[data-theme="dark"] .cm-comment            { color: #8f7863 !important; font-style: italic; }
+html.lang-java[data-theme="dark"] .cm-keyword            { color: #f89820 !important; font-weight: 700; }
+html.lang-java[data-theme="dark"] .cm-type,
+html.lang-java[data-theme="dark"] .cm-variable-3         { color: #ffc98a !important; }
+html.lang-java[data-theme="dark"] .cm-number             { color: #86efac !important; font-weight: 700; }
+html.lang-java[data-theme="dark"] .cm-string             { color: #5ab0ff !important; }
+html.lang-java[data-theme="dark"] .cm-atom,
+html.lang-java[data-theme="dark"] .cm-builtin            { color: #d8b4fe !important; }
+html.lang-java[data-theme="dark"] .CodeMirror-selected   { background: rgba(248,152,32,.24) !important; }
+html.lang-java[data-theme="dark"] .CodeMirror-linebackground.hl { background: rgba(248,152,32,.13) !important; }
+
+/* ── Python editor ── */
+html.lang-python[data-theme="dark"] .CodeMirror            { background: #070c16 !important; color: #e8f0fa !important; }
+html.lang-python[data-theme="dark"] .CodeMirror-gutters    { background: #0d1526 !important; border-right-color: #1f3352 !important; }
+html.lang-python[data-theme="dark"] .CodeMirror-linenumber { color: #51699a !important; }
+html.lang-python[data-theme="dark"] .cm-def,
+html.lang-python[data-theme="dark"] .cm-variable           { color: #e8f0fa !important; }
+html.lang-python[data-theme="dark"] .cm-operator           { color: #a3b6cf !important; }
+html.lang-python[data-theme="dark"] .cm-comment            { color: #687d9b !important; font-style: italic; }
+html.lang-python[data-theme="dark"] .cm-keyword            { color: #5aa9e6 !important; font-weight: 700; }
+html.lang-python[data-theme="dark"] .cm-builtin            { color: #9ad0ff !important; }
+html.lang-python[data-theme="dark"] .cm-number             { color: #7ee787 !important; font-weight: 700; }
+html.lang-python[data-theme="dark"] .cm-string             { color: #ffd43b !important; }
+html.lang-python[data-theme="dark"] .cm-atom               { color: #c4b5fd !important; }
+html.lang-python[data-theme="dark"] .CodeMirror-selected   { background: rgba(90,169,230,.24) !important; }
+html.lang-python[data-theme="dark"] .CodeMirror-linebackground.hl { background: rgba(90,169,230,.13) !important; }
+
+/* The TRACE mark is the brand, not a language: it stays teal in both
+   themes, matching the front page tile. */
+html.lang-java .logo-mark, html.lang-python .logo-mark { background: #00c9a7; }
+html.lang-java .logo-name span, html.lang-python .logo-name span { color: #00c9a7; }

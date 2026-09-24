@@ -63,15 +63,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
 
 <!-- App stylesheets (load order matters: base → visualizer → themes → pro) -->
-<link rel="stylesheet" href="css/base.css?v=106"/>
-<link rel="stylesheet" href="css/visualizer.css?v=104"/>
-<link rel="stylesheet" href="css/themes.css?v=101"/>
-<link rel="stylesheet" href="css/pro.css?v=111"/>
+<link rel="stylesheet" href="css/base.css?v=108"/>
+<link rel="stylesheet" href="css/visualizer.css?v=105"/>
+<link rel="stylesheet" href="css/themes.css?v=103"/>
+<link rel="stylesheet" href="css/pro.css?v=112"/>
 <link rel="stylesheet" href="css/pattern-finder.css?v=113"/>
 <link rel="stylesheet" href="css/front.css?v=5"/>
 
-<!-- Inline: apply saved theme before first paint to prevent flash -->
-<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'light';</script>
+<!-- Inline: set the dark base before first paint to prevent a flash -->
+<script>document.documentElement.dataset.theme = 'dark';  /* the language themes build on it (themes.css) */</script>
 </head>
 <body>
 
@@ -200,14 +200,7 @@
 
   <button id="mobile-menu-btn" title="Menu">☰</button>
 
-  <div id="theme-picker" title="Choose theme">
-    <div class="tsw active" data-t="light" title="Light"></div>
-    <div class="tsw"        data-t="dark"  title="Dark"></div>
-    <div class="tsw"        data-t="night" title="Ocean"></div>
-    <div class="tsw"        data-t="dusk"  title="Slate"></div>
-    <div class="tsw"        data-t="ember" title="Nord"></div>
-  </div>
-  <button id="themetgl" title="Toggle dark / light mode">🌙</button>
+
 </header>
 
 <!-- ── Mobile drawer (hidden on desktop) ───────────────────────────── -->
@@ -218,13 +211,7 @@
   <button class="hbtn always-mobile" id="m-help">Help / Shortcuts</button>
   <button class="hbtn always-mobile" id="m-pattern">Find Pattern</button>
   <button class="hbtn always-mobile" id="m-bug"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>Report a Problem</button>
-  <div id="theme-picker-mobile" style="display:flex;gap:6px;padding-top:8px;border-top:1px solid var(--ink);margin-top:4px;justify-content:center;">
-    <div class="tsw" data-t="light" title="Light" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#FAF7F2;cursor:pointer;"></div>
-    <div class="tsw" data-t="dark"  title="Dark"  style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#0a0a0a;cursor:pointer;"></div>
-    <div class="tsw" data-t="night" title="Ocean" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#020817;cursor:pointer;"></div>
-    <div class="tsw" data-t="dusk"  title="Slate" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#0f172a;cursor:pointer;"></div>
-    <div class="tsw" data-t="ember" title="Nord"  style="width:22px;height:22px;border-radius:50%;border:2px solid var(--ink);background:#242933;cursor:pointer;"></div>
-  </div>
+
 </div>
 
 <!-- ── Help Modal ──────────────────────────────────────────────────── -->
@@ -244,7 +231,6 @@
         <div class="kc"><span class="key">Space</span></div><div class="desc">Play / Pause animation</div>
         <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">S</span></div><div class="desc">Save current code as snippet</div>
         <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">K</span></div><div class="desc">Open snippets menu</div>
-        <div class="kc"><span class="key">⌘/Ctrl</span>+<span class="key">D</span></div><div class="desc">Toggle dark / light mode</div>
         <div class="kc"><span class="key">Home</span></div><div class="desc">Jump to first step</div>
         <div class="kc"><span class="key">End</span></div><div class="desc">Jump to last step</div>
         <div class="kc"><span class="key">?</span></div><div class="desc">Show this help</div>
@@ -641,8 +627,8 @@ or:  nums = [2,7,11,15]
 <script src="js/tracer.js?v=101"></script>      <!-- TRACER (Python string)               -->
 <script src="js/templates.js?v=101"></script>   <!-- TMPL                                 -->
 <script src="js/parser.js?v=100"></script>      <!-- buildDriver + helpers                -->
-<script src="js/renderers.js?v=101"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
-<script src="js/renderers-recursion.js?v=101"></script> <!-- rRecursionPanels (call stack + tree) -->
+<script src="js/renderers.js?v=102"></script>           <!-- rBars, rHeap, rLL, rTree, …       -->
+<script src="js/renderers-recursion.js?v=102"></script> <!-- rRecursionPanels (call stack + tree) -->
 <script src="js/complexity.js?v=101"></script>          <!-- Time/space complexity analysis     -->
 <script src="js/render-core.js?v=101"></script>         <!-- snaps/cur/prev state, render()    -->
 <!-- java-parser is native ESM; expose it as a global so the classic scripts
@@ -656,14 +642,14 @@ or:  nums = [2,7,11,15]
 <script src="js/java-runner.js?v=6"></script>
 <script src="js/java-instrument.js?v=7"></script> <!-- instrumentJava        -->
 <script src="js/java-driver.js?v=3"></script>    <!-- buildJavaDriver               -->
-<script src="js/lang.js?v=5"></script>           <!-- LANG, runJavaSource, setLang  -->
+<script src="js/lang.js?v=6"></script>           <!-- LANG, runJavaSource, setLang  -->
 <script src="js/runner.js?v=117"></script>      <!-- initPyodide, runCode, hlLine, setStat-->
-<script src="js/controls.js?v=103"></script>    <!-- cm, tiEl, transport buttons, theme   -->
-<script src="js/pro-ui.js?v=115"></script>      <!-- snippets, modals, share, mobile      -->
+<script src="js/controls.js?v=104"></script>    <!-- cm, tiEl, transport buttons, theme   -->
+<script src="js/pro-ui.js?v=116"></script>      <!-- snippets, modals, share, mobile      -->
 <script src="js/pattern-finder.js?v=113"></script> <!-- Find Pattern: local reasoning engine -->
 <script src="js/onboard.js?v=101"></script>     <!-- new-user onboarding guide            -->
-<script src="js/shortcuts.js?v=100"></script>   <!-- keyboard shortcuts                   -->
-<script src="js/app.js?v=106"></script>         <!-- restoreState + initPyodide kickoff   -->
+<script src="js/shortcuts.js?v=101"></script>   <!-- keyboard shortcuts                   -->
+<script src="js/app.js?v=107"></script>         <!-- restoreState + initPyodide kickoff   -->
 <!-- TEST.* stress harness — dev only. Never loads on the live site. -->
 <script>
 if(location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.search.includes('test=1')){

@@ -40,10 +40,6 @@ document.addEventListener('keydown', e=>{
   if(mod && (e.key==='k'||e.key==='K')){
     e.preventDefault(); toggleSnipMenu(); return;
   }
-  // Cmd/Ctrl + D → Toggle dark / light
-  if(mod && (e.key==='d'||e.key==='D')){
-    e.preventDefault(); document.getElementById('themetgl').click(); return;
-  }
 
   // Bare-key shortcuts — only when not typing
   if(isTypingTarget(e.target)) return;

@@ -7,9 +7,6 @@
 
 /* ── Restore persisted session on page load ─────────────────────────── */
 (function restoreState(){
-  // Theme swatch already set inline at top of <head>; just sync the active class
-  const t = document.documentElement.dataset.theme || 'light';
-  document.querySelectorAll('#theme-picker .tsw').forEach(x=>x.classList.toggle('active', x.dataset.t===t));
 
   // Speed slider
   const sp = Store.get('speed');

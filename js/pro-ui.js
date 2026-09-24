@@ -338,13 +338,4 @@ document.getElementById('m-share').addEventListener('click',    ()=>{ mobileDraw
 document.getElementById('m-help').addEventListener('click',     ()=>{ mobileDrawer.classList.remove('show'); document.getElementById('btn-help').click(); });
 document.getElementById('m-bug').addEventListener('click',      ()=>{ mobileDrawer.classList.remove('show'); document.getElementById('bug-fab').click(); });
 
-// Mobile theme swatches
-document.querySelectorAll('#theme-picker-mobile .tsw').forEach(sw=>{
-  sw.addEventListener('click', ()=>{
-    const t = sw.dataset.t;
-    document.documentElement.dataset.theme = t;
-    try { localStorage.setItem('theme', t); } catch{}
-    document.querySelectorAll('#theme-picker .tsw').forEach(x=>x.classList.toggle('active', x.dataset.t===t));
-    mobileDrawer.classList.remove('show');
-  });
-});
+

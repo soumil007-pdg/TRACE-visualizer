@@ -317,7 +317,7 @@ function rTupleList(name, arr, pArr){
     const prev = pArr[i];
     const changed = !prev || JSON.stringify(prev) !== JSON.stringify(tup);
     const cells = tup.map(v=>`<td style="border:1.5px solid var(--ink);padding:3px 8px;font-family:var(--mono);font-size:11px;">${esc(fv(v))}</td>`).join('');
-    return `<tr style="${changed?'background:rgba(0,201,167,.14);':''}">${cells}</tr>`;
+    return `<tr style="${changed?'background:color-mix(in srgb, var(--accent) 14%, transparent);':''}">${cells}</tr>`;
   }).join('');
   return `<div class="vb"><h3>${_hdr('List of Tuples', name)} <span class="sub">[${arr.length} items · ${cols}-tuple]</span></h3><div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;">${rows}</table></div></div>`;
 }
@@ -374,7 +374,7 @@ function _rDictOfLists(name, val, pVal){
 function rNested(name, val, pVal){
   if(_isDictOfLists(val)) return _rDictOfLists(name, val, pVal);
   const changed = !pVal || JSON.stringify(pVal) !== JSON.stringify(val);
-  const bg = changed ? 'background:rgba(0,201,167,.08);' : '';
+  const bg = changed ? 'background:color-mix(in srgb, var(--accent) 8%, transparent);' : '';
   const tree = rNestedTree(name, val, 0, 8);
   return `<div class="vb" style="${bg}"><h3>${_hdr('Nested Data', name)}</h3><div style="font-family:var(--mono);font-size:12px;padding:10px;overflow-x:auto;max-height:400px;overflow-y:auto;">${tree}</div></div>`;
 }

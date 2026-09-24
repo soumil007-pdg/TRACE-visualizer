@@ -327,6 +327,16 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
 
   // ── Theme-aware palette ──────────────────────────────────────────────────
   const isLight = document.documentElement.dataset.theme === 'light';
+  /* "Active call" follows the language accent (Java orange, Python blue).
+     These colours go into SVG attributes, which cannot read CSS variables,
+     so the accent is read once here. The other states keep one meaning in
+     every language: path purple, found green, pruned red, memo amber. */
+  const _acc = (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00c9a7');
+  const _rgb = (() => { let h = _acc.replace('#', ''); if(h.length === 3) h = h.split('').map(c => c + c).join('');
+                        return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) || 0); })();
+  const AC  = _acc;
+  const ACa = a => `rgba(${_rgb.join(',')},${a})`;
+  const ACl = '#' + _rgb.map(v => Math.round(v + (255 - v) * 0.55).toString(16).padStart(2, '0')).join('');
   const P = isLight ? {
     eA:'#00897b', eF:'#16a34a', eP:'#dc2626', eM:'#b45309', eDef:'rgba(70,40,180,0.55)',
     gL:'rgba(0,0,0,0.06)', gT:'rgba(60,60,120,0.3)',
@@ -350,11 +360,11 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
     cHi:(st)=>st==='active'?'rgba(0,137,123,0.4)':st==='path'?'rgba(80,40,200,0.25)':st==='done'?'rgba(22,163,74,0.3)':'rgba(80,40,200,0.15)',
     cDf:'rgba(0,0,0,0.04)', cDS:'rgba(0,0,0,0.08)', cDT:'rgba(30,30,60,0.7)',
   } : {
-    eA:'#00c9a7', eF:'#22c55e', eP:'#ef4444', eM:'#fbbf24', eDef:'#8b5cf6',
+    eA:AC, eF:'#22c55e', eP:'#ef4444', eM:'#fbbf24', eDef:'#8b5cf6',
     gL:'rgba(255,255,255,0.06)', gT:'rgba(180,170,220,0.5)',
-    fA:['#00c9a7','0.45'], fPS:['#8b5cf6','0.25'], fF:['#22c55e','0.5'], fP:['#ef4444','0.4'], fM:['#fbbf24','0.45'],
+    fA:[AC,'0.45'], fPS:['#8b5cf6','0.25'], fF:['#22c55e','0.5'], fP:['#ef4444','0.4'], fM:['#fbbf24','0.45'],
     S:{
-      active: {bg:'rgba(0,201,167,0.38)',  stroke:'#00c9a7',               sw:3,  acc:'#00c9a7',op:1,   f:`filter="url(#svgt-glow)"`},
+      active: {bg:ACa(0.38),  stroke:AC,               sw:3,  acc:AC,op:1,   f:`filter="url(#svgt-glow)"`},
       path:   {bg:'rgba(139,92,246,0.14)', stroke:'rgba(139,92,246,0.85)', sw:2,  acc:'#a78bfa',op:0.45,f:`filter="url(#svgt-pshadow)"`},
       found:  {bg:'rgba(34,197,94,0.18)',  stroke:'#22c55e',               sw:2.5,acc:'#22c55e',op:0.8, f:`filter="url(#svgt-gfound)"`},
       pruned: {bg:'rgba(239,68,68,0.12)',  stroke:'rgba(239,68,68,0.65)',  sw:1.5,acc:'#ef4444',op:0.65,f:`filter="url(#svgt-gpruned)"`},
@@ -362,14 +372,14 @@ function rSVGTree(callTrees, currentCallId, maxCallId){
       done:   {bg:'rgba(74,222,128,0.08)', stroke:'rgba(74,222,128,0.38)', sw:1.5,acc:'#4ade80',op:0.4, f:''},
       pending:{bg:'rgba(255,255,255,0.03)',stroke:'rgba(255,255,255,0.10)',sw:1,  acc:'rgba(140,140,175,0.22)',op:0,  f:''},
     },
-    dot:{active:'#00c9a7',path:'#a78bfa',found:'#22c55e',pruned:'#ef4444',memo:'#fbbf24',done:'#4ade80',pending:'rgba(140,140,175,0.3)'},
+    dot:{active:AC,path:'#a78bfa',found:'#22c55e',pruned:'#ef4444',memo:'#fbbf24',done:'#4ade80',pending:'rgba(140,140,175,0.3)'},
     dotN:(st)=>st==='pending'?'rgba(180,180,200,0.35)':'#fff',
-    fn:{active:'#00ffd5',path:'#d8b4fe',found:'#bbf7d0',pruned:'#fecaca',memo:'#fef08a',done:'#bbf7d0',pending:'rgba(160,160,195,0.45)'},
+    fn:{active:ACl,path:'#d8b4fe',found:'#bbf7d0',pruned:'#fecaca',memo:'#fef08a',done:'#bbf7d0',pending:'rgba(160,160,195,0.45)'},
     arg:(st)=>st==='pending'?'rgba(140,140,170,0.4)':'rgba(240,240,255,0.96)',
     ret:(st)=>st==='found'?'#22c55e':st==='pruned'?'#fca5a5':'#4ade80',
-    bA:['#00c9a7','#0a0a0a'], bF:['rgba(34,197,94,0.22)','#22c55e'],
+    bA:[AC,'#0a0a0a'], bF:['rgba(34,197,94,0.22)','#22c55e'],
     bP:['rgba(239,68,68,0.18)','#ef4444'], bM:['rgba(251,191,36,0.20)','#fbbf24'], bD:['rgba(74,222,128,0.18)','#4ade80'],
-    cHi:(st)=>st==='active'?'rgba(139,92,246,0.55)':st==='path'?'rgba(139,92,246,0.35)':st==='done'?'rgba(0,201,167,0.35)':'rgba(139,92,246,0.18)',
+    cHi:(st)=>st==='active'?'rgba(139,92,246,0.55)':st==='path'?'rgba(139,92,246,0.35)':st==='done'?ACa(0.35):'rgba(139,92,246,0.18)',
     cDf:'rgba(255,255,255,0.055)', cDS:'rgba(255,255,255,0.09)', cDT:'rgba(210,210,245,0.65)',
   };
 

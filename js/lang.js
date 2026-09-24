@@ -106,8 +106,13 @@ function setLang(l, opts){
   window.LANG = l;
   if(window.Store) Store.set('lang', l);
   if(window._cm) window._cm.setOption('mode', l === 'java' ? 'text/x-java' : 'python');
-  document.body.classList.toggle('lang-java',   l === 'java');
-  document.body.classList.toggle('lang-python', l !== 'java');
+  // body carries it for the RUN / chip rules (front.css); <html> carries it
+  // for the language themes, whose derived tokens are computed on <html>
+  for(const el of [document.body, document.documentElement]){
+    el.classList.toggle('lang-java',   l === 'java');
+    el.classList.toggle('lang-python', l !== 'java');
+  }
+  if(window._cm) window._cm.refresh();
   if(window.refreshTemplates) window.refreshTemplates(opts.loadDefault !== false);
   _syncRunButton();
 }

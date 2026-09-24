@@ -169,35 +169,6 @@ document.getElementById('tgl').addEventListener('click', ()=>{
   window.addEventListener('resize', () => fitTestInput());
 })();
 
-/* ── Theme system ───────────────────────────────────────────────────── */
-const DARK_THEMES = new Set(['dark','night','dusk','ember']);
-(function(){
-  const swatches  = document.querySelectorAll('.tsw');
-  const toggleBtn = document.getElementById('themetgl');
-  let cur = localStorage.getItem('theme') || 'light';
-
-  function applyTheme(t){
-    cur = t;
-    document.documentElement.dataset.theme = t;
-    localStorage.setItem('theme', t);
-    swatches.forEach(s=>s.classList.toggle('active', s.dataset.t===t));
-    const isDark = DARK_THEMES.has(t);
-    toggleBtn.textContent = isDark ? '☀' : '🌙';
-    toggleBtn.title = isDark ? 'Switch to light' : 'Switch to dark';
-    if(window._cm){
-      const bg = isDark
-        ? (t==='night'?'#020817':t==='dusk'?'#0f172a':t==='ember'?'#242933':'#0a0a0a')
-        : '#fdfcf8';
-      window._cm.getWrapperElement().style.background = bg;
-      window._cm.refresh();
-    }
-  }
-
-  swatches.forEach(s=>s.addEventListener('click', ()=>applyTheme(s.dataset.t)));
-  toggleBtn.addEventListener('click', ()=>applyTheme(DARK_THEMES.has(cur)?'light':'dark'));
-  applyTheme(cur);
-})();
-
 /* ── Transport buttons ──────────────────────────────────────────────── */
 const btnRun  = document.getElementById('run');
 const btnSB   = document.getElementById('sb');
