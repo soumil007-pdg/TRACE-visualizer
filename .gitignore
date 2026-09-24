@@ -4,3 +4,7 @@ js/test.js
 
 # Marketing assets — local only, never deploy.
 marketing/
+
+# Dev-only Java test harnesses (unit suite, Python parity, torture, hard
+# problems, CST probe) — never deploy. Local only; history keeps them (fa45398).
+dev/
