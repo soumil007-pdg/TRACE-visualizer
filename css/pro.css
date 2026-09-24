@@ -206,12 +206,18 @@
 }
 
 /* ── Tablet responsive (1000px–1200px) — buttons stay visible ──── */
-@media (max-width: 1200px) and (min-width: 881px) {
+/* 1340, not 1200: the header's contents need about 1330px before the Example
+   label spills out of its slot and over its neighbour. */
+@media (max-width: 1340px) and (min-width: 881px) {
   header { gap: 8px !important; padding: 0 10px !important; }
   .logo-name { font-size: 12px; letter-spacing: 2px; }
   .hm { gap: 8px; }
   .hm label { display: none; }
-  .hm select { font-size: 10px; min-width: 160px; padding: 4px 8px; }
+  .hm select { font-size: 10px; padding: 4px 8px; }
+  /* #tmpl, not .hm select: base.css sets #tmpl { min-width: 200px }, and an
+     id outranks a class, so the compact size never applied before. The
+     select truncates its text with an ellipsis when narrow. */
+  #tmpl { min-width: 96px; }
   .hbtn { padding: 5px 9px; font-size: 9px; gap: 5px; }
   .hbtn .kbd { display: none; }
   .save-status { font-size: 8px; padding: 2px 5px; }
@@ -219,6 +225,11 @@
 }
 
 /* ── Large screens optimization ─────────────────────────────────── */
+/* 881-1000px, just above the phone layout: the header holds more than fits,
+   so the Saved indicator (the least important item) steps aside. */
+@media (max-width: 1000px) and (min-width: 881px) {
+  .save-status { display: none; }
+}
 @media (min-width: 1401px) {
   #tmpl { min-width: 240px; }
 }

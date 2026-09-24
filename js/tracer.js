@@ -50,6 +50,19 @@ def find_node(root,val):
   if node.right:q.append(node.right)
  return None
 """
+def _arepr(v):
+ # Call-stack / recursion-tree label for one argument. A grid passed down a
+ # DFS used to print first and push the arguments that change (r, c) off the
+ # end: dfs(g=[['1', '1', '0', '0', , r=\u2026). Short values print in full;
+ # long containers print their shape, so the label reads dfs(g=4\u00d75, r=1, c=0).
+ try:r=repr(v)
+ except:return'?'
+ if len(r)<=22:return r
+ if isinstance(v,list)and v and all(isinstance(x,list)for x in v[:50]):return str(len(v))+'\u00d7'+str(len(v[0]))
+ if isinstance(v,(list,tuple)):return'['+str(len(v))+' items]'
+ if isinstance(v,dict):return'{'+str(len(v))+' keys}'
+ if isinstance(v,(set,frozenset)):return'{'+str(len(v))+' items}'
+ return r[:21]+'\u2026'
 def _p(v):
  if v is None or isinstance(v,bool)or isinstance(v,(int,str)):return True
  if isinstance(v,float):return _math.isfinite(v)  # reject inf/nan
@@ -388,11 +401,15 @@ def run_trace(u,d):
     param_names=co.co_varnames[:co.co_argcount+co.co_kwonlyargcount]
     if co.co_flags&0x04:param_names=param_names+(co.co_varnames[co.co_argcount+co.co_kwonlyargcount],)
     if co.co_flags&0x08:param_names=param_names+(co.co_varnames[co.co_argcount+co.co_kwonlyargcount+(1 if co.co_flags&0x04 else 0)],)
+    akey={}
     for k in param_names:
      if k=='self'or k.startswith('_'):continue
      v=frame.f_locals.get(k,'?')
-     try:args[k]=repr(v)[:22]
-     except:args[k]='?'
+     # akey keeps the old truncated repr so memo detection is unchanged;
+     # args is only what the label shows
+     try:akey[k]=repr(v)[:22]
+     except:akey[k]='?'
+     args[k]=_arepr(v)
     # Capture closure lists (free vars) as visual context — e.g. arr in check(index)
     ctx={}
     for k in co.co_freevars:
@@ -402,7 +419,7 @@ def run_trace(u,d):
        ctx[k]=[repr(x)[:8]for x in v[:25]]
      except:pass
     # Memo detection: same (func, args) called before = cache hit / overlapping subproblem
-    _args_key=str(sorted(args.items()))
+    _args_key=str(sorted(akey.items()))
     _memo_key=(fname,_args_key)
     _is_memo=_memo_key in _seen_calls
     _seen_calls.add(_memo_key)

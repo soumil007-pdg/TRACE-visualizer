@@ -212,3 +212,18 @@ html.front-open, html.front-open body { overflow: hidden; }
 .lang-chip svg { width: 13px; height: 13px; opacity: .55; }
 
 body.lang-java #run, body.lang-python #run { background: var(--lang); color: var(--lang-ink); }
+
+/* ── Language accent on the panel headers ─────────────────────────────
+   The small 01 / 02 / 03 numbers and a hairline at the header's left edge
+   take the language colour, tying the app to the front page. Headers are
+   dark in every theme, so the text shades are chosen for dark: Python's
+   brand blue is too dim as text there, a lighter step of it is used. */
+body.lang-java   { --lang-text: #f89820; }
+body.lang-python { --lang-text: #6aa6dc; }
+body.lang-java .ch-num, body.lang-python .ch-num { color: var(--lang-text); opacity: .95; }
+body.lang-java .ch-head, body.lang-python .ch-head { box-shadow: inset 2px 0 0 var(--lang-text); }
+
+/* Header items may shrink (.hm is flex: 0 1 auto, min-width: 0) and a
+   select copes by truncating, but the chip cannot, so its slot must not
+   shrink or it spills over the Example label on narrower windows. */
+.hm-lang { flex-shrink: 0; }

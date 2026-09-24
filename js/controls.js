@@ -67,6 +67,7 @@ document.getElementById('tmpl').addEventListener('change', e=>{
   cm.setValue(t.code);
   tiEl.value = t.input;
   refreshP();
+  if(window.fitTestInput) fitTestInput();   // defined below; the startup load runs first
 });
 /* ── Language selector ───────────────────────────────────────────────
    The Python <option> list is authored in index.html; snapshot it so
@@ -128,6 +129,7 @@ document.getElementById('tgl').addEventListener('click', ()=>{
 
   vr.addEventListener('mousedown', e=>{
     vd=true; vr.classList.add('act'); document.body.classList.add('dv');
+    lb.dataset.userSized = '1';          // their size wins over auto-fit from now on
     sy=e.clientY; sth=lt.getBoundingClientRect().height; sbh=lb.getBoundingClientRect().height;
     e.preventDefault();
   });
@@ -142,6 +144,29 @@ document.getElementById('tgl').addEventListener('click', ()=>{
     if(!vd) return;
     vd=false; vr.classList.remove('act'); document.body.classList.remove('dv');
   });
+
+  /* Test input sized to what it holds. A LeetCode input is a line or two,
+     and a fixed 185px left most of the panel empty while the code above
+     scrolled. Empty input keeps the default height so the example guide in
+     the placeholder stays readable. Desktop only: phones stack the panes. */
+  window.fitTestInput = function(){
+    if(lb.dataset.userSized || window.innerWidth <= 880) return;
+    const ti = document.getElementById('tinput');
+    if(!ti.value.trim()){ lb.style.height = ''; if(window._cm) window._cm.refresh(); return; }
+    const head = lb.querySelector('.ch-head').offsetHeight;
+    const gp = document.getElementById('genprev');
+    const gpH = gp.classList.contains('hidden') ? 0 : gp.offsetHeight;
+    const keep = ti.style.cssText;
+    ti.style.flex = 'none'; ti.style.height = '0px';
+    const need = ti.scrollHeight;                     // content + padding
+    ti.style.cssText = keep;
+    const max = Math.round(document.getElementById('left').clientHeight * 0.45);
+    lb.style.height = Math.max(92, Math.min(need + head + gpH + 2, max)) + 'px';
+    if(window._cm) window._cm.refresh();
+  };
+  document.getElementById('tinput').addEventListener('input', () => fitTestInput());
+  document.getElementById('tgl').addEventListener('click', () => setTimeout(fitTestInput, 0));
+  window.addEventListener('resize', () => fitTestInput());
 })();
 
 /* ── Theme system ───────────────────────────────────────────────────── */

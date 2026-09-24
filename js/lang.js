@@ -124,6 +124,10 @@ function _syncRunButton(){
   if(label) label.textContent = java ? 'RUN JAVA' : 'RUN PYTHON';
   const name = document.querySelector('#lang-chip .lc-name');
   if(name) name.textContent = java ? 'Java' : 'Python';
+  // what the solution can use without importing anything
+  const hint = document.getElementById('code-hint');
+  if(hint) hint.textContent = java ? 'ListNode · TreeNode · java.util.* · auto-imported'
+                                   : 'ListNode · TreeNode · Optional · auto-available';
   document.getElementById('loading').classList.toggle('hidden', ready);
   if(window.setStat) setStat(java ? 'Java ready' : (ready ? 'Ready' : 'Loading…'), ready ? 'ready' : null);
 }
@@ -146,6 +150,7 @@ function enterLang(l, seed){
   }
   window._langEntered = true;
   _syncRunButton();
+  if(window.fitTestInput) fitTestInput();
   hideFront(l);
   if(window._maybeAutoOnboard) window._maybeAutoOnboard();
   // a shared Java link that points at a step runs straight away;

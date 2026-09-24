@@ -70,6 +70,17 @@ function _jrepr(v){
   return String(v);
 }
 
+/* One argument in a call-stack / recursion-tree label, same rule as
+   _arepr in tracer.js: short values in full, long containers by shape. */
+function _jarg(v){
+  const r = _jrepr(v);
+  if(r.length <= 22) return r;
+  if(Array.isArray(v) && v.length && v.every(x => Array.isArray(x))) return v.length + '\u00d7' + v[0].length;
+  if(Array.isArray(v)) return '[' + v.length + ' items]';
+  if(v && typeof v === 'object' && typeof v.__repr__ !== 'string') return '{' + Object.keys(v).length + ' keys}';
+  return r.slice(0, 21) + '\u2026';
+}
+
 /* Rebuild the call forest from __CALL / __RET lines.
 
    The node shape is NOT ours to choose: renderers-recursion.js reads
@@ -81,10 +92,13 @@ function buildCallTrees(stdout){
   for(const line of String(stdout).split('\n')){
     if(line.startsWith('__CALL{')){
       let c; try { c = JSON.parse(line.slice(6)); } catch(e){ continue; }
-      const args = {};
-      for(const k in (c.args || {})) args[k] = _jrepr(c.args[k]).slice(0, 22);
+      const args = {}, akey = {};
+      for(const k in (c.args || {})){
+        akey[k] = _jrepr(c.args[k]).slice(0, 22);   // memo key, as before
+        args[k] = _jarg(c.args[k]);                  // what the label shows
+      }
       // memo detection mirrors tracer.js: same (func, args) seen before
-      const memoKey = c.fn + '|' + JSON.stringify(Object.entries(args).sort());
+      const memoKey = c.fn + '|' + JSON.stringify(Object.entries(akey).sort());
       const is_memo = seen.has(memoKey);
       seen.add(memoKey);
       const node = { id: c.id, func: c.fn, args, ctx: {}, depth: c.depth,

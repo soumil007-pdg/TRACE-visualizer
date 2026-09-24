@@ -430,7 +430,8 @@ function normRepr(r){
   if(r === null || r === undefined) return null;
   let s = String(r);
   s = s.replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false').replace(/\bNone\b/g, 'null');
-  s = s.replace(/'([^',]{2,})'/g, '"$1"');           // Python 'abc'  vs  Java "abc"
+  s = s.replace(/'([^',]{2,})'/g, '"$1"');
+  s = s.replace(/^'([^']*\u2026)$/, '"$1');       // truncated string label           // Python 'abc'  vs  Java "abc"
   return s;
 }
 

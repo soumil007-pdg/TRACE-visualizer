@@ -43,7 +43,7 @@ function heapXY(i, W, P){
 function rLL(name, ll, ptrs){
   const { nodes, cycle_to } = ll;
   if(!nodes.length)
-    return `<div class="vb"><h3>Linked List&nbsp;&nbsp;${esc(name)}</h3><div class="ll-nil">None</div></div>`;
+    return `<div class="vb"><h3>${_hdr('Linked List', name)}</h3><div class="ll-nil">${fv(null)}</div></div>`;
   const byId = {};
   for(const [n,nid] of Object.entries(ptrs||{})) (byId[nid]||=[]).push(n);
   const parts = nodes.map((node,i)=>{
@@ -54,8 +54,8 @@ function rLL(name, ll, ptrs){
   }).join('');
   const tail = cycle_to != null
     ? `<span class="ll-arr">↺</span><div class="ll-cyc">→ idx ${cycle_to}</div>`
-    : `<span class="ll-arr">→</span><div class="ll-nil">None</div>`;
-  return `<div class="vb"><h3>Linked List&nbsp;&nbsp;${esc(name)} <span class="sub">[${nodes.length} nodes${cycle_to!=null?', cyclic':''}]</span></h3><div class="ll-row">${parts}${tail}</div></div>`;
+    : `<span class="ll-arr">→</span><div class="ll-nil">${fv(null)}</div>`;
+  return `<div class="vb"><h3>${_hdr('Linked List', name)} <span class="sub">[${nodes.length} nodes${cycle_to!=null?', cyclic':''}]</span></h3><div class="ll-row">${parts}${tail}</div></div>`;
 }
 
 /* ── Binary Tree ────────────────────────────────────────────────────── */
@@ -81,7 +81,7 @@ function rTree(name, root, ptrs){
     const pt = pn.length ? `<text class="tp" x="${px}" y="${py-R-6}">${esc(pn.join(','))}</text>` : '';
     return `<g class="tn ${pn.length?'hi':''}">${pt}<circle cx="${px}" cy="${py}" r="${R}"/><text x="${px}" y="${py}">${esc(fv(p.node.val))}</text></g>`;
   }).join('');
-  return `<div class="vb"><h3>Tree&nbsp;&nbsp;${esc(name)} <span class="sub">[${ps.length} nodes]</span></h3><div class="tree-wrap"><svg class="tree" width="${W}" height="${H}">${edges}${circles}</svg></div></div>`;
+  return `<div class="vb"><h3>${_hdr('Tree', name)} <span class="sub">[${ps.length} nodes]</span></h3><div class="tree-wrap"><svg class="tree" width="${W}" height="${H}">${edges}${circles}</svg></div></div>`;
 }
 
 /* ── Grid ───────────────────────────────────────────────────────────── */
@@ -100,13 +100,13 @@ function rGrid(name, grid, prevGrid){
     }).join('');
     return `<div class="grid-row">${cells}</div>`;
   }).join('');
-  return `<div class="vb"><h3>Grid&nbsp;&nbsp;${esc(name)} <span class="sub">[${grid.length}×${grid[0]?.length||0}]</span></h3><div class="grid-wrap">${rows}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('Grid', name)} <span class="sub">[${grid.length}×${grid[0]?.length||0}]</span></h3><div class="grid-wrap">${rows}</div></div>`;
 }
 
 /* ── Heap (array-backed binary tree) ────────────────────────────────── */
 function rHeap(name, arr, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>Heap&nbsp;&nbsp;${esc(name)} <span class="sub">[0 nodes · empty]</span></h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('Heap', name)} <span class="sub">[0 nodes · empty]</span></h3><div class="empty">(empty)</div></div>`;
 
   const isTuple = arr.length>0 && Array.isArray(arr[0]);
   const prio = v => Array.isArray(v) ? v[0] : v;
@@ -156,7 +156,7 @@ function rHeap(name, arr, pArr){
   const heapKind = isMaxHeap ? 'max-heap' : 'min-heap';
   const sub = `[${n} nodes · top=${topRaw} · ${heapKind}]`;
   const hdrKind = isMaxHeap ? 'Heap (max)' : 'Heap (min)';
-  return `<div class="vb"><h3>${hdrKind}&nbsp;&nbsp;${esc(name)} <span class="sub">${sub}</span></h3><div class="tree-wrap"><svg class="tree" width="${W}" height="${H}">${edges}${circles}</svg></div></div>`;
+  return `<div class="vb"><h3>${_hdr(hdrKind, name)} <span class="sub">${sub}</span></h3><div class="tree-wrap"><svg class="tree" width="${W}" height="${H}">${edges}${circles}</svg></div></div>`;
 }
 
 /* ── Smart array classification ─────────────────────────────────────── */
@@ -216,7 +216,7 @@ function classifyArr(name, arr, scalars){
 /* ── Indexed pills (two-pointer / sliding window) ───────────────────── */
 function rIndexedPills(name, arr, scalars, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const rng = detectRange(arr, scalars);
   const lo=rng?.lo??-1, hi=rng?.hi??-1, ptrs=rng?.ptrs??{};
   const cols = arr.map((v,i)=>{
@@ -226,13 +226,13 @@ function rIndexedPills(name, arr, scalars, pArr){
     return `<div class="idx-item"><div class="idx-ptrlabels">${labels}</div><div class="${cls}">${esc(fv(v))}</div><div class="idx-label">${i}</div></div>`;
   }).join('');
   const winNote=lo>=0&&lo!==hi?`<span class="sub">window [${lo}…${hi}]</span>`:'';
-  return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length}]</span>&nbsp;${winNote}</h3><div class="idx-row">${cols}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('List', name)} <span class="sub">[${arr.length}]</span>&nbsp;${winNote}</h3><div class="idx-row">${cols}</div></div>`;
 }
 
 /* ── Binary (0/1) list ──────────────────────────────────────────────── */
 function rBinaryList(name, arr, scalars, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const rng = detectRange(arr, scalars);
   const lo=rng?.lo??-1, hi=rng?.hi??-1, ptrs=rng?.ptrs??{};
   const cols = arr.map((v,i)=>{
@@ -241,24 +241,24 @@ function rBinaryList(name, arr, scalars, pArr){
     let cls=`bin-cell ${v===1?'bin-1':'bin-0'}${inWin?' in-win':''}${atPtr?' at-ptr':''}${ch?' ch':''}`;
     return `<div class="idx-item"><div class="idx-ptrlabels">${labels}</div><div class="${cls}">${v}</div><div class="idx-label">${i}</div></div>`;
   }).join('');
-  return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length} · binary]</span></h3><div class="idx-row">${cols}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('List', name)} <span class="sub">[${arr.length} · binary]</span></h3><div class="idx-row">${cols}</div></div>`;
 }
 
 /* ── Bool (True/False) list ─────────────────────────────────────────── */
 function rBoolList(name, arr, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const cols = arr.map((v,i)=>{
     const ch = pArr[i] !== v;
     return `<div class="idx-item"><div class="idx-ptrlabels"></div><div class="bool-cell ${v?'bool-t':'bool-f'}${ch?' ch':''}">${v?'T':'F'}</div><div class="idx-label">${i}</div></div>`;
   }).join('');
-  return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length} · bool]</span></h3><div class="idx-row">${cols}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('List', name)} <span class="sub">[${arr.length} · bool]</span></h3><div class="idx-row">${cols}</div></div>`;
 }
 
 /* ── String list ────────────────────────────────────────────────────── */
 function rStringList(name, arr, scalars, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const rng = detectRange(arr, scalars);
   const lo=rng?.lo??-1, hi=rng?.hi??-1, ptrs=rng?.ptrs??{};
   const cols = arr.map((v,i)=>{
@@ -267,13 +267,13 @@ function rStringList(name, arr, scalars, pArr){
     let cls=`str-cell${inWin?' in-win':''}${atPtr?' at-ptr':''}${ch?' ch':''}`;
     return `<div class="idx-item"><div class="idx-ptrlabels">${labels}</div><div class="${cls}">${esc(fv(v))}</div><div class="idx-label">${i}</div></div>`;
   }).join('');
-  return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length}]</span></h3><div class="idx-row">${cols}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('List', name)} <span class="sub">[${arr.length}]</span></h3><div class="idx-row">${cols}</div></div>`;
 }
 
 /* ── Bar chart (sorting / pure-comparison arrays) ───────────────────── */
 function rBars(name, arr, scalars, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const ptrs = {};
   for(const [k,v] of Object.entries(scalars))
     if(typeof v==='number' && Number.isInteger(v) && v>=0 && v<arr.length)
@@ -286,12 +286,12 @@ function rBars(name, arr, scalars, pArr){
     const ph = (ptrs[i]||[]).map(n=>`<span class="ptr arr">${esc(n)}</span>`).join('');
     return `<div class="bc"><div class="bp">${ph}</div><div class="bar ${pArr[i]!==v?'ch':''}" style="height:${h}px;"></div><div class="bv">${esc(fv(v))}</div><div class="bi">${i}</div></div>`;
   }).join('');
-  return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length}]</span></h3><div class="list-row">${cols}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('List', name)} <span class="sub">[${arr.length}]</span></h3><div class="list-row">${cols}</div></div>`;
 }
 
 /* ── Deque / Queue renderer ─────────────────────────────────────────── */
 function rQueue(name, arr, pArr){
-  const head = `<div class="vb"><h3>Queue&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length} items]</span></h3>`;
+  const head = `<div class="vb"><h3>${_hdr('Queue', name)} <span class="sub">[${arr.length} items]</span></h3>`;
   if(!arr.length)
     return head + `<div class="queue-wrap"><div class="queue-empty">(empty)</div></div></div>`;
   const prevLen = pArr.length;
@@ -311,7 +311,7 @@ function rQueue(name, arr, pArr){
 /* ── List-of-tuples (compact table) ─────────────────────────────────── */
 function rTupleList(name, arr, pArr){
   if(!arr.length)
-    return `<div class="vb"><h3>List&nbsp;&nbsp;${esc(name)}</h3><div class="empty">(empty)</div></div>`;
+    return `<div class="vb"><h3>${_hdr('List', name)}</h3><div class="empty">(empty)</div></div>`;
   const cols = arr[0].length;
   const rows = arr.map((tup,i)=>{
     const prev = pArr[i];
@@ -319,7 +319,7 @@ function rTupleList(name, arr, pArr){
     const cells = tup.map(v=>`<td style="border:1.5px solid var(--ink);padding:3px 8px;font-family:var(--mono);font-size:11px;">${esc(fv(v))}</td>`).join('');
     return `<tr style="${changed?'background:rgba(0,201,167,.14);':''}">${cells}</tr>`;
   }).join('');
-  return `<div class="vb"><h3>List of Tuples&nbsp;&nbsp;${esc(name)} <span class="sub">[${arr.length} items · ${cols}-tuple]</span></h3><div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;">${rows}</table></div></div>`;
+  return `<div class="vb"><h3>${_hdr('List of Tuples', name)} <span class="sub">[${arr.length} items · ${cols}-tuple]</span></h3><div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;">${rows}</table></div></div>`;
 }
 
 /* ── Deep nested structures (JSON tree) ──────────────────────────────── */
@@ -368,7 +368,7 @@ function _rDictOfLists(name, val, pVal){
     const keyChanged = !pObj[k] || JSON.stringify(pObj[k]) !== JSON.stringify(arr);
     return `<div class="nl-row${keyChanged ? ' nl-ch' : ''}"><span class="nl-key">${esc(k)}</span><span class="nl-arrow">→</span><div class="nl-vals">${pills || '<span class="nl-empty">[ ]</span>'}</div></div>`;
   }).join('');
-  return `<div class="vb"><h3>Adjacency&nbsp;&nbsp;${esc(name)}</h3><div class="nl-grid">${rows}</div></div>`;
+  return `<div class="vb"><h3>${_hdr('Adjacency', name)}</h3><div class="nl-grid">${rows}</div></div>`;
 }
 
 function rNested(name, val, pVal){
@@ -376,5 +376,5 @@ function rNested(name, val, pVal){
   const changed = !pVal || JSON.stringify(pVal) !== JSON.stringify(val);
   const bg = changed ? 'background:rgba(0,201,167,.08);' : '';
   const tree = rNestedTree(name, val, 0, 8);
-  return `<div class="vb" style="${bg}"><h3>Nested Data&nbsp;&nbsp;${esc(name)}</h3><div style="font-family:var(--mono);font-size:12px;padding:10px;overflow-x:auto;max-height:400px;overflow-y:auto;">${tree}</div></div>`;
+  return `<div class="vb" style="${bg}"><h3>${_hdr('Nested Data', name)}</h3><div style="font-family:var(--mono);font-size:12px;padding:10px;overflow-x:auto;max-height:400px;overflow-y:auto;">${tree}</div></div>`;
 }

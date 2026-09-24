@@ -112,7 +112,7 @@ function renderResultPanel(result, hasResult){
   panel.classList.add('show');
 
   if(result === null){
-    body.innerHTML = `<span class="rp-none">None</span>`; return;
+    body.innerHTML = `<span class="rp-none">${fv(null)}</span>`; return;
   }
   if(typeof result !== 'object' || result === null){
     body.innerHTML = `<span class="rp-scalar">${esc(String(result))}</span>`; return;
@@ -248,7 +248,7 @@ function renderPanel(n, s){
     }
     const rows = Object.entries(d).map(([k,v])=>`<tr><td class="k">${esc(k)}</td><td class="${pv[k]!==v?'ch':''}">${esc(fv(v))}</td></tr>`).join('')
                || '<tr><td colspan="2" style="color:var(--gray)">(empty)</td></tr>';
-    return `<div class="vb"><h3>Dict&nbsp;&nbsp;${esc(n)}</h3><table class="dt"><tbody>${rows}</tbody></table></div>`;
+    return `<div class="vb"><h3>${_hdr('Dict', n)}</h3><table class="dt"><tbody>${rows}</tbody></table></div>`;
   }
   if(s.sets && s.sets[n] !== undefined){
     const sv=s.sets[n], ps=new Set(prev.sets[n]||[]);
@@ -259,7 +259,7 @@ function renderPanel(n, s){
     const pills = sv.length===0
       ? '<span style="color:var(--gray)">(empty)</span>'
       : sv.map(v=>`<span class="sp ${!ps.has(v)?'add':''}">${esc(fv(v))}</span>`).join('');
-    return `<div class="vb"><h3>Set&nbsp;&nbsp;${esc(n)}</h3><div>${pills}</div></div>`;
+    return `<div class="vb"><h3>${_hdr('Set', n)}</h3><div>${pills}</div></div>`;
   }
   return null;
 }
@@ -457,7 +457,11 @@ function render(){
     }
   }
 
-  // Recursion panels — call stack + tree (only when recursion detected)
+  // Recursion panels: call stack + tree (only when recursion detected).
+  // Built here but placed AFTER the data structures: the grid or list being
+  // changed is what the eye follows, so it belongs above the fold, and the
+  // call stack explains it underneath.
+  let recursionHtml = null;
   if(_callTrees.length && s.current_call_id != null){
     // Strip wrapper roots that aren't real recursion (e.g. class Solution()
     // constructor, or non-recursive entry methods like insertIntoBST that
@@ -466,8 +470,7 @@ function render(){
     // children to roots. This makes the recursion tree show the actual
     // recursive function, not the LeetCode-style wrapper boilerplate.
     const cleanedTrees = _cleanCallTrees(_callTrees);
-    const rtp = rRecursionPanels(cleanedTrees, s.current_call_id, s.call_depth || 0, s.max_call_id || 0);
-    if(rtp) out.push(rtp);
+    recursionHtml = rRecursionPanels(cleanedTrees, s.current_call_id, s.call_depth || 0, s.max_call_id || 0);
   }
 
   // Data structures in CODE ORDER (_var_order) — from post-execution state
@@ -494,6 +497,8 @@ function render(){
     const p = renderPanel(n, dispS);
     if(p){ out.push(p); rendered.add(n); }
   }
+
+  if(recursionHtml) out.push(recursionHtml);
 
   // Complexity growth panel — shown at the top of the trace while complexity
   // mode is active, with a live operation counter that tracks the current step.
