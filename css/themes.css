@@ -256,7 +256,6 @@ html.lang-python[data-theme="dark"] .cm-atom               { color: #c4b5fd !imp
 html.lang-python[data-theme="dark"] .CodeMirror-selected   { background: rgba(90,169,230,.24) !important; }
 html.lang-python[data-theme="dark"] .CodeMirror-linebackground.hl { background: rgba(90,169,230,.13) !important; }
 
-/* The TRACE mark is the brand, not a language: it stays teal in both
-   themes, matching the front page tile. */
-html.lang-java .logo-mark, html.lang-python .logo-mark { background: #00c9a7; }
-html.lang-java .logo-name span, html.lang-python .logo-name span { color: #00c9a7; }
+/* The TRACE mark takes the language colour too (base.css paints it with
+   --accent). Only the front page tile stays teal: no language is chosen
+   there yet. */
