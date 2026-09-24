@@ -176,7 +176,7 @@ const _esc = typeof esc === 'function' ? esc
 function _isTruthyReturn(rv){
   if(!rv) return false;
   const t = rv.trim();
-  if(t === 'True') return true;
+  if(t === 'True' || t === 'true') return true;   // Python / Java repr
   if((t.startsWith('[') || t.startsWith('(')) && t !== '[]' && t !== '()') return true;
   if(t.startsWith("'") && t.length > 2) return true;
   if(t.startsWith('"') && t.length > 2) return true;
@@ -186,7 +186,7 @@ function _isTruthyReturn(rv){
 function _isFalsyReturn(rv){
   if(!rv) return false;
   const t = rv.trim();
-  return t === 'False' || t === '0';  // NOT None — None leaves stay 'done'
+  return t === 'False' || t === 'false' || t === '0';  // NOT None/null: those leaves stay 'done'
 }
 
 /* ── Per-node state classifier ──

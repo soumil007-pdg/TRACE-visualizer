@@ -5,10 +5,10 @@
   window.JavaParser = JavaParser;
   window.dispatchEvent(new Event('java-parser-ready'));
 </script>
-<script src="../js/java-preamble.js?v=4"></script>
-<script src="../js/java-instrument.js?v=5"></script>
-<script src="../js/java-runner.js?v=2"></script>
-<script src="../js/java-driver.js?v=2"></script>
+<script src="../js/java-preamble.js?v=7"></script>
+<script src="../js/java-instrument.js?v=7"></script>
+<script src="../js/java-runner.js?v=5"></script>
+<script src="../js/java-driver.js?v=3"></script>
 <script>
 const out = document.getElementById('out');
 const fails = []; let n = 0;
@@ -102,7 +102,7 @@ ${JAVA_PREAMBLE_ALIASES}
   eq('uses .func not .fn', rt.func, 'fib');
   eq('args are repr strings', rt.args, { n: '4' });
   eq('has .ctx', typeof rt.ctx, 'object');
-  eq('uses .return_val', rt.return_val, 3);
+  eq('.return_val is a repr string (the renderer calls .trim())', rt.return_val, '3');
   eq('sets .returned', rt.returned, true);
   eq('root not memo', rt.is_memo, false);
   eq('root has 2 children', rt.children.length, 2);
@@ -127,21 +127,34 @@ ${JAVA_PREAMBLE_ALIASES}
   const pj = parseJava(jsrc);
   ok('java parses', pj.error === null, String(pj.error));
 
-  const decls = collectDecls(pj.cst);
-  const names = decls.map(d => d.name).sort();
-  eq('finds params and locals', names, ['count','grid','inner','r','rows']);
-
-  eq('line 4 scope', liveAt(decls, 4).sort(), ['count','grid','rows']);
-  ok('loop var live inside the loop', liveAt(decls, 6).includes('r'), JSON.stringify(liveAt(decls,6)));
-  ok('loop var dead after the loop', !liveAt(decls, 8).includes('r'), JSON.stringify(liveAt(decls,8)));
-  ok('inner dead after the loop', !liveAt(decls, 8).includes('inner'), JSON.stringify(liveAt(decls,8)));
+  /* Scoping, checked on the instrumented output rather than internals.
+     The card for a line lists exactly the names live BEFORE that line runs,
+     which is what Python shows on its line event. */
+  const cardOn = (code, line) => {
+    const m = code.match(new RegExp('__Tracer\\.t\\(' + line + ', \\d+([^;]*)\\);'));
+    return m ? [...m[1].matchAll(/"(\w+)"/g)].map(x => x[1]).sort() : null;
+  };
+  const scode = instrumentJava(jsrc).code;
+  eq('before line 3: only the param', cardOn(scode, 3), ['grid']);
+  eq('before line 4: rows now live, count not yet', cardOn(scode, 4), ['grid','rows']);
+  eq('inside the loop body: r live, inner not yet', cardOn(scode, 6), ['count','grid','r','rows']);
+  eq('after the loop: r and inner gone', cardOn(scode, 9), ['count','grid','rows']);
+  ok('card comes BEFORE the statement, like a Python line event',
+     /__Tracer\.t\(4, \d+[^;]*\);\s*int count = 0;/.test(scode), scode);
+  ok('method body wrapped so every exit pops the call stack',
+     /__Tracer\.enter\("numIslands"[^;]*\); try \{/.test(scode) && /\} finally \{ __Tracer\.exit\(\); \}\s*\}\s*\}\s*$/.test(scode), scode);
+  ok('return value captured', /return __Tracer\.ret\(count\);/.test(scode), scode);
+  ok('for header card sits in the update clause, before r++',
+     /r < rows; __Tracer\.t\(5, \d+[^)]*\), r\+\+\)/.test(scode), scode);
+  ok('braceless if body wrapped with its own card',
+     /if \(grid\[r\]\[0\] == '1'\) \{ __Tracer\.t\(7, /.test(scode), scode);
 
   const inst = instrumentJava(jsrc);
   ok('instrument succeeds', inst.error === null, String(inst.error));
   ok('injects trace calls', /__Tracer\.t\(\d+,/.test(inst.code), 'no trace call');
   ok('injects an enter call', /__Tracer\.enter\("numIslands"/.test(inst.code), 'no enter call');
   ok('original code preserved', inst.code.includes('int count = 0;'), 'original line lost');
-  ok('never injects after return', !/return count;\s*\n\s*__Tracer\.t/.test(inst.code),
+  ok('nothing injected after a return', !/return __Tracer\.ret\(count\);\s*__Tracer\.t/.test(inst.code),
      'injected unreachable code after return');
   ok('no unsupported in plain code', inst.unsupported.length === 0, JSON.stringify(inst.unsupported));
 
@@ -171,7 +184,9 @@ ${JAVA_PREAMBLE_ALIASES}
   eq('braceless loop result', parseCards(bj.stdout).result, 6);
 
   const si = instrumentJava('public class S{ int f(java.util.List<Integer> l){ return l.stream().mapToInt(Integer::intValue).sum(); } }');
-  ok('detects streams', si.unsupported.includes('streams'), JSON.stringify(si.unsupported));
+  ok('streams no longer rejected: their bodies are just left untraced', si.unsupported.length === 0, JSON.stringify(si.unsupported));
+  const th = instrumentJava('public class S{ void f(){ new Thread(() -> {}).start(); } }');
+  ok('threads still rejected', th.unsupported.includes('threads'), JSON.stringify(th.unsupported));
 
   /* ── Task 6: driver builder ── */
   const sigSrc = `public class Solution {
@@ -209,7 +224,7 @@ public class Main {
   public static void main(String[] a){
     ListNode l = __H.buildList(new int[]{1,2,3});
     TreeNode t = __H.buildTree(new Integer[]{3,9,20,null,null,15,7});
-    __Tracer.t(1, "l", l, "t", t);
+    __Tracer.t(1, -1, "l", l, "t", t);
     System.out.println("__RESULT{0}");
   }
 }`;

@@ -6,8 +6,14 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 /* The solution method: its name, return type, and parameter types.
-   Prefers a public method, since that is what LeetCode always marks. */
+   Read from the CST when the parser is available. A regex cannot do this
+   reliably: `List<List<Integer>>` defeats `<[^>]*>`, and splitting params
+   on commas breaks `Map<Integer, Integer> m`. Both are everyday LeetCode
+   signatures. The regex remains only as a fallback while the parser loads. */
 function javaSignature(src){
+  const viaCst = _signatureFromCst(src);
+  if(viaCst) return viaCst;
+
   const body = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
   const re = /(?:public|protected)\s+(?:static\s+)?([\w.$]+(?:\s*<[^>]*>)?(?:\s*\[\s*\])*)\s+(\w+)\s*\(([^)]*)\)\s*\{/g;
   let m;
@@ -23,6 +29,57 @@ function javaSignature(src){
     return { returnType: m[1].replace(/\s+/g,''), method: m[2], params };
   }
   return null;
+}
+
+function _signatureFromCst(src){
+  if(typeof parseJava !== 'function') return null;
+  const { cst } = parseJava(src);
+  if(!cst) return null;
+  const txt = n => {
+    let lo = Infinity, hi = -Infinity;
+    (function d(x){
+      if(!x || typeof x !== 'object') return;
+      if(typeof x.image === 'string' && typeof x.startOffset === 'number'){
+        lo = Math.min(lo, x.startOffset); hi = Math.max(hi, x.endOffset); return;
+      }
+      for(const k in x.children || {}) (x.children[k] || []).forEach(d);
+    })(n);
+    return lo === Infinity ? '' : src.slice(lo, hi + 1);
+  };
+  const ch = (n, k, i = 0) => n && n.children && n.children[k] ? n.children[k][i] : undefined;
+
+  // top-level class members only: helper classes' methods are not the entry point
+  const methods = [];
+  (function walk(n, depth){
+    if(!n || typeof n !== 'object' || typeof n.image === 'string') return;
+    if(n.name === 'classBody') depth++;
+    if(n.name === 'methodDeclaration' && depth === 1) methods.push(n);
+    for(const k in n.children || {}) (n.children[k] || []).forEach(c => walk(c, depth));
+  })(cst, 0);
+
+  const isPublic = m => (m.children.methodModifier || []).some(x => /\bpublic\b/.test(txt(x)));
+  const pick = methods.find(m => isPublic(m) && txt(ch(ch(ch(m,'methodHeader'),'methodDeclarator'),'Identifier')) !== 'main')
+            || methods.find(m => txt(ch(ch(ch(m,'methodHeader'),'methodDeclarator'),'Identifier')) !== 'main');
+  if(!pick) return null;
+
+  const header = ch(pick, 'methodHeader');
+  const decl = ch(header, 'methodDeclarator');
+  const params = [];
+  (function walk(n){
+    if(!n || typeof n !== 'object' || typeof n.image === 'string') return;
+    if(n.name === 'variableParaRegularParameter' || n.name === 'variableArityParameter'){
+      const id = ch(n, 'variableDeclaratorId');
+      const type = txt(ch(n, 'unannType'));
+      const dims = ch(id, 'dims') ? txt(ch(id, 'dims')) : '';
+      params.push({ type: (type + dims + (n.name === 'variableArityParameter' ? '[]' : '')).replace(/\s+/g, ''),
+                    name: txt(ch(id, 'Identifier')) });
+      return;
+    }
+    for(const k in n.children || {}) (n.children[k] || []).forEach(walk);
+  })(ch(decl, 'formalParameterList'));
+
+  return { returnType: txt(ch(header, 'result')).replace(/\s+/g, ''),
+           method: txt(ch(decl, 'Identifier')), params };
 }
 
 /* Render a JS value as a Java literal of the declared type. */

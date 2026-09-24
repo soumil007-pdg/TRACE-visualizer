@@ -209,12 +209,13 @@ async function runCodeJava(){
             'your code is supported.');
     return;
   }
-  if(res.error){ setStat('Error','err'); showErr(res.error); return; }
+  if(res.error) showErr(res.error);
   if(!res.snapshots.length){
-    setStat('No steps','err');
-    showErr('Nothing was traced. Check that your test input matches the method signature.');
+    setStat(res.error ? 'Error' : 'No steps', 'err');
+    if(!res.error) showErr('Nothing was traced. Check that your test input matches the method signature.');
     return;
   }
+  _heapVars = detectJavaHeapVars(window._cm.getValue());
 
   snaps        = res.snapshots;
   _finalResult = res.result;
@@ -227,13 +228,13 @@ async function runCodeJava(){
   prev = { lists:{}, grids:{}, locals:{}, dicts:{}, sets:{}, deques:{},
            node_pointers:{}, linked_lists:{}, trees:{} };
   render();
-  setStat(snaps.length + ' steps', 'ready');
+  setStat(snaps.length + ' steps', res.error ? 'err' : 'ready');
   updCtrl();
 
   if(window.innerWidth <= 880) document.body.classList.add('mobile-trace-view');
   if(window._markExecutedLines) window._markExecutedLines(snaps);
   if(window.Analytics) Analytics.track('code_run', {
-    steps: snaps.length, had_error: false, live: false, lang: 'java',
+    steps: snaps.length, had_error: !!res.error, live: false, lang: 'java',
     code_len: window._cm.getValue().length
   });
 }

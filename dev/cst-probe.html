@@ -1,64 +1,39 @@
 <!doctype html><meta charset="utf-8"><title>CST probe</title>
 <pre id="out" style="font:12px ui-monospace,Menlo,monospace;padding:16px;white-space:pre-wrap">loading…</pre>
 <script type="module">
+/* Dumps java-parser's real CST shape for the constructs the instrumenter
+   has to handle, so node names and child keys are read, not guessed. */
 import * as JP from 'https://cdn.jsdelivr.net/npm/java-parser@3.0.1/+esm';
 const out = document.getElementById('out');
-const src = `public class Solution {
-  public int numIslands(char[][] grid) {
-    int rows = grid.length;
-    int count = 0;
-    for (int r = 0; r < rows; r++) {
-      int inner = r * 2;
-      if (grid[r][0] == '1') count++;
-    }
-    return count;
+const src = `class Solution {
+  Solution() { this(1); }
+  Solution(int k) { int z = k; }
+  int f(int[] a) {
+    int x;
+    do { x = 1; } while (x < 0);
+    outer: for (int i = 0; i < 2; i++) { continue outer; }
+    for (;;) { break; }
+    for (int v : a) x += v;
+    if (x > 0) x = 1; else if (x < 0) x = 2; else { x = 3; }
+    java.util.Arrays.sort(a);
+    java.util.Comparator<Integer> c = (p, q) -> { int d = p - q; return d; };
+    Runnable r = new Runnable() { public void run() { int w = 1; } };
+    switch (x) { case 1: x = 2; break; default: x = 3; }
+    return x;
   }
-  void helper(int a, String b) { int z = a; }
 }`;
 const cst = JP.parse(src);
-
-// every distinct node name, with the line range it spans
-const seen = new Map();
-(function walk(n, depth){
-  if(!n || typeof n !== 'object') return;
-  if(n.name){
-    if(!seen.has(n.name)) seen.set(n.name, []);
-    seen.get(n.name).push(depth);
+const tok = n => n && typeof n.image === 'string' && typeof n.startOffset === 'number';
+const lines = [];
+lines.push('root has location: ' + JSON.stringify(cst.location || null));
+(function walk(n, d){
+  if(!n || typeof n !== 'object' || tok(n)) return;
+  if(/^(ifStatement|whileStatement|doStatement|basicForStatement|enhancedForStatement|labeledStatement|lambdaExpression|lambdaBody|returnStatement|constructorBody|explicitConstructorInvocation|switchStatement|switchBlock|switchBlockStatementGroup|classBody|blockStatement|methodBody|block|localVariableDeclaration|variableDeclarator|statement)$/.test(n.name)){
+    const keys = Object.entries(n.children||{}).map(([k,v]) => k + (v.length>1 ? '×'+v.length : '')).join(', ');
+    const loc = n.location ? `[${n.location.startOffset}..${n.location.endOffset} L${n.location.startLine}]` : '[no loc]';
+    lines.push('  '.repeat(Math.min(d,12)) + n.name + ' ' + loc + '  {' + keys + '}');
   }
-  for(const k in n.children||{}) (n.children[k]||[]).forEach(c=>walk(c, depth+1));
+  for(const k in n.children||{}) (n.children[k]||[]).forEach(c => walk(c, d+1));
 })(cst, 0);
-
-// how are declarations and params actually represented?
-const decls = [];
-(function walk(n){
-  if(!n || typeof n !== 'object') return;
-  if(n.name === 'variableDeclaratorId' && n.children?.Identifier){
-    const t = n.children.Identifier[0];
-    decls.push({ name:t.image, line:t.startLine, col:t.startColumn });
-  }
-  for(const k in n.children||{}) (n.children[k]||[]).forEach(walk);
-})(cst);
-
-// what nodes could serve as scope boundaries, and do they carry line info?
-const scopes = [];
-(function walk(n){
-  if(!n || typeof n !== 'object') return;
-  if(n.name && /block|ForStatement|methodDeclaration|methodBody/i.test(n.name)){
-    let lo=Infinity, hi=-Infinity;
-    (function dig(x){
-      if(!x || typeof x!=='object') return;
-      if(typeof x.startLine==='number') lo=Math.min(lo,x.startLine);
-      if(typeof x.endLine==='number')   hi=Math.max(hi,x.endLine);
-      for(const k in x.children||{}) (x.children[k]||[]).forEach(dig);
-    })(n);
-    scopes.push({ node:n.name, from:lo, to:hi });
-  }
-  for(const k in n.children||{}) (n.children[k]||[]).forEach(walk);
-})(cst);
-
-out.textContent =
-  'DECLARATIONS FOUND:\n' + JSON.stringify(decls, null, 1) +
-  '\n\nSCOPE-LIKE NODES (name, line range):\n' +
-  scopes.map(s=>`  ${s.node}  ${s.from}..${s.to}`).join('\n') +
-  '\n\nALL NODE NAMES:\n  ' + [...seen.keys()].sort().join('\n  ');
+out.textContent = lines.join('\n');
 </script>

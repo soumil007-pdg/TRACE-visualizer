@@ -178,3 +178,38 @@ catches wrong assumptions.
 
 Python continues to run locally in Pyodide, instantly. Nothing about the
 existing Python path is modified.
+
+## Revision 2026-09-24: matching Python step for step
+
+The first implementation injected a trace call AFTER each statement. That was
+wrong in a way results-only tests could not see: render-core.js highlights
+card k's line and shows card k+1's state, because Python's line event fires
+BEFORE a line runs. Every Java step showed the variables one statement ahead.
+It also never recorded returns, so the call tree was a single chain, and it
+sent no max_call_id, so the recursion tree drew nothing.
+
+The instrumenter now works on exact CST offsets, never lines, and inserts:
+
+| where | what | why |
+|---|---|---|
+| before each statement | `__Tracer.t(line, sid, vars…)` | pre-execution state, like Python's line event |
+| method body | `enter(…); try { … } finally { exit(); }` | every exit path pops the call stack |
+| each return | `return __Tracer.ret(expr)` | return value reaches the call tree |
+| basic `for` | card in the update clause, before `i++` | fires where Python's `for` line does; also leaves `for(;;)` constant |
+| `while` / `do` | `c(…) && (cond)` | a card at every condition check |
+| enhanced `for` | card at the top of each iteration | one header step per item |
+| braceless bodies | `{ card; stmt }` | the TRUE branch of `if (x) y();` is visible |
+
+After the run, lang.js derives the TRUE/FALSE badge from control flow (did the
+next card in the same frame land in the then-branch / loop body) and the
+statement panel from state diffs. Nothing is re-evaluated, so conditions with
+calls or side effects are safe, which Python's eval-based approach is not.
+Steps are then merged by Python's own rule: a frame gets a new step only when
+its line changes or a loop re-enters.
+
+Lambdas and streams are now supported: their bodies are simply left untraced.
+
+Verification: `dev/feel.js` compares what the user sees at every step against
+Python for 12 algorithms and is 12/12 identical; `dev/torture.js` 20/20;
+`dev/hard.js` 10/10; unit suite 76/76. See dev/README.md for the intended
+differences (block scoping, lambda bodies, hash order).

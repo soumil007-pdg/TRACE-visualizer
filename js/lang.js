@@ -7,12 +7,54 @@
 
 window.LANG = (window.Store && Store.get('lang')) || 'python';
 
+/* PriorityQueue variables, so renderers.js draws them as heaps. Plays the
+   role detectHeapVars() plays for heapq in Python. */
+function detectJavaHeapVars(code){
+  const s = new Set();
+  const re = /\b([A-Za-z_$][\w$]*)\s*=\s*new\s+PriorityQueue\b/g;
+  let m;
+  while((m = re.exec(code)) !== null) s.add(m[1]);
+  return s;
+}
+
+/* Insertions never add a newline, so javac's line N is the user's line
+   N minus the preamble's height. Rewrite Main.java:N into the user's own
+   numbering so errors point at code they wrote. */
+function _preambleLines(){ return (JAVA_PREAMBLE + '\n').split('\n').length - 1; }
+
+function _mapJavaLines(msg, userLines){
+  const off = _preambleLines();
+  return String(msg).replace(/Main\.java:(\d+)/g, (all, n) => {
+    const u = +n - off;
+    return (u >= 1 && u <= userLines) ? 'line ' + u : all;
+  });
+}
+
+function _tidyJavac(out, userLines){
+  return _mapJavaLines(out, userLines).split('\n')
+    .map(l => l.replace(/^line (\d+):\s*error:\s*/, 'Line $1: '))
+    .filter(l => l.trim() && !/^\s*\^\s*$/.test(l) && !/^\d+ errors?$/.test(l.trim()))
+    .slice(0, 6).join('\n');
+}
+
+function _tidyTrace(err, userLines){
+  const lines = _mapJavaLines(err, userLines).split('\n');
+  const head = (lines[0] || '').replace(/^Exception in thread "main"\s*/, '')
+                                 .replace(/^java\.lang\./, '');
+  const at = lines.find(l => /\bat Solution\b.*\(line \d+\)/.test(l));
+  const m = at && at.match(/at Solution\.(\w+)\(line (\d+)\)/);
+  return m ? `${head}\n  at line ${m[2]} in ${m[1]}()` : head;
+}
+
 /* Assemble preamble + instrumented user code + generated main(), run it on
    a real JVM, and parse the output back into the snapshot contract.
-   Returns the same shape the Python path produces. */
+   Returns the same shape the Python path produces. As in Python, a run
+   that crashes or hits the step cap still returns the trace up to that
+   point, alongside the error. */
 async function runJavaSource(userCode, inputText){
   const empty = { snapshots:[], error:null, result:null, has_result:false,
                   call_trees:[], unsupported:[] };
+  const userLines = String(userCode).split('\n').length;
 
   const inst = instrumentJava(userCode);
   if(inst.unsupported.length)
@@ -33,31 +75,23 @@ async function runJavaSource(userCode, inputText){
   const jr = await judge0Run(source);
 
   if(jr.compileOutput)
-    return Object.assign({}, empty, { error: 'Java compile error\n' + _tidyJavac(jr.compileOutput) });
-  if(jr.stderr)
-    return Object.assign({}, empty, { error: _tidyTrace(jr.stderr) });
-  if(!jr.stdout && jr.statusText && !/Accepted/i.test(jr.statusText))
-    return Object.assign({}, empty, { error: jr.statusText });
+    return Object.assign({}, empty, { error: 'Java compile error\n' + _tidyJavac(jr.compileOutput, userLines) });
 
   const pc = parseCards(jr.stdout);
-  return { snapshots: pc.snapshots, error: null, result: pc.result,
-           has_result: pc.has_result, call_trees: buildCallTrees(jr.stdout),
-           unsupported: [] };
-}
+  const snapshots = postProcessJava(pc.snapshots, inst.sids, detectJavaHeapVars(userCode));
 
-/* javac reports line numbers in the assembled file, which includes our
-   preamble and is meaningless to the user. Strip those so the message
-   points at what they actually wrote. */
-function _tidyJavac(out){
-  return String(out).split('\n')
-    .map(l => l.replace(/^Main\.java:\d+:\s*/, ''))
-    .filter(l => l.trim() && !/^\s*\^\s*$/.test(l))
-    .slice(0, 6).join('\n');
-}
+  let error = null;
+  if(/^__CAP$/m.test(jr.stdout))
+    error = 'Step cap reached (1000 steps), possible infinite loop';
+  else if(jr.stderr)
+    error = _tidyTrace(jr.stderr, userLines);
+  else if(!pc.has_result && /time limit/i.test(jr.statusText || ''))
+    error = 'Time limit exceeded';
+  else if(!jr.stdout && jr.statusText && !/Accepted/i.test(jr.statusText))
+    error = jr.statusText;
 
-function _tidyTrace(err){
-  return String(err).split('\n').filter(l => !/__Tracer|__H\.|at Main\.main/.test(l))
-    .slice(0, 6).join('\n');
+  return { snapshots, error, result: pc.result, has_result: pc.has_result,
+           call_trees: buildCallTrees(jr.stdout), unsupported: [] };
 }
 
 function setLang(l){
